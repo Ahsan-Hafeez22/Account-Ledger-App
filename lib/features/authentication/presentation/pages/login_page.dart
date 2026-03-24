@@ -1,6 +1,7 @@
 import 'package:account_ledger/core/extensions/string_extensions.dart';
-import 'package:account_ledger/core/extensions/widget_extensions.dart';
 import 'package:account_ledger/core/utils/custom_snack_bar.dart';
+import 'package:account_ledger/features/authentication/presentation/widget/app_logo_container.dart';
+import 'package:account_ledger/features/authentication/presentation/widget/social_button_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -85,7 +86,7 @@ class _LoginPageState extends State<LoginPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   20.0.height,
-                  _AppLogo(),
+                  AppLogo(),
                   40.0.height,
                   Text('Log In', style: AppFonts.boldBlack24),
                   4.0.height,
@@ -106,7 +107,7 @@ class _LoginPageState extends State<LoginPage> {
                     controller: _passwordController,
                     label: AppStrings.password,
                     hint: 'Enter your password',
-                    obscureText: true,
+                    isPassword: true,
                     validator: _validatePassword,
                   ),
                   4.0.height,
@@ -147,156 +148,29 @@ class _LoginPageState extends State<LoginPage> {
                     },
                   ),
                   AppSpacing.xxl.height,
-                  _Divider(),
+                  Divider(),
                   AppSpacing.xxl.height,
-                  _SocialButtonsRow(),
+                  SocialButtonsRow(),
                   AppSpacing.xxxl.height,
-                  _SignUpPrompt(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text("Don't have an account?", style: AppFonts.grey14),
+                      TextButton(
+                        onPressed: () => context.push(RouteNames.register),
+                        child: Text(
+                          AppStrings.signUp,
+                          style: AppFonts.mediumPrimary14,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
           ),
         ),
       ),
-    );
-  }
-}
-
-// ── Sub-widgets ────────────────────────────────────────────────────────────────
-
-class _AppLogo extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        width: double.infinity,
-        height: 100.h,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-          gradient: LinearGradient(
-            colors: [
-              AppColors.primary,
-              AppColors.primary.withValues(alpha: 0.6),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.25),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.wallet_rounded, size: 45.sp, color: Colors.white),
-            10.0.width,
-            RichText(
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: 'Account Ledger\n',
-                    style: AppFonts.boldWhite24,
-                  ),
-                  TextSpan(
-                    text: 'Your Digital Wallet',
-                    style: AppFonts.white12,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Divider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(child: Container(height: 1, color: AppColors.divider)),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          child: Text('Or continue with', style: AppFonts.grey14),
-        ),
-        Expanded(child: Container(height: 1, color: AppColors.divider)),
-      ],
-    );
-  }
-}
-
-class _SocialButtonsRow extends StatelessWidget {
-  static const _socials = [
-    (label: 'Google', icon: Icons.g_mobiledata_rounded),
-    (label: 'Facebook', icon: Icons.facebook_rounded),
-    // (label: 'Apple', icon: Icons.apple_rounded),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: _socials
-          .expand(
-            (s) => [
-              Expanded(
-                child: _SocialButton(label: s.label, icon: s.icon),
-              ),
-              if (s != _socials.last) 8.0.width,
-            ],
-          )
-          .toList(),
-    );
-  }
-}
-
-class _SocialButton extends StatelessWidget {
-  final String label;
-  final IconData icon;
-
-  const _SocialButton({required this.label, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {},
-      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          border: Border.all(color: AppColors.border),
-          color: AppColors.surface,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 16.sp, color: AppColors.textPrimary),
-            10.0.width,
-            Text(label, style: AppFonts.mediumBlack14),
-          ],
-        ).paddingSymmetric(h: 16, v: 12),
-      ),
-    );
-  }
-}
-
-class _SignUpPrompt extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text("Don't have an account?", style: AppFonts.grey14),
-        TextButton(
-          onPressed: () => context.push(RouteNames.register),
-          child: Text(AppStrings.signUp, style: AppFonts.mediumPrimary14),
-        ),
-      ],
     );
   }
 }

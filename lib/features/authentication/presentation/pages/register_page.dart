@@ -1,5 +1,6 @@
 import 'package:account_ledger/core/utils/custom_snack_bar.dart';
 import 'package:account_ledger/features/authentication/presentation/bloc/auth_bloc.dart';
+import 'package:account_ledger/features/authentication/presentation/widget/social_button_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -142,7 +143,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   controller: _passwordController,
                   label: AppStrings.password,
                   hint: 'Create a strong password',
-                  obscureText: true,
+                  isPassword: true,
                   validator: _validatePassword,
                 ),
                 const SizedBox(height: AppSpacing.xl),
@@ -150,7 +151,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   controller: _confirmPasswordController,
                   label: 'Confirm password',
                   hint: 'Re-enter your password',
-                  obscureText: true,
+                  isPassword: true,
                   validator: _validateConfirmPassword,
                 ),
                 const SizedBox(height: AppSpacing.xxl),
@@ -194,7 +195,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   ],
                 ),
                 const SizedBox(height: AppSpacing.xxl),
-                _SocialButtonsRow(),
+                SocialButtonsRow(),
                 const SizedBox(height: AppSpacing.xxxl),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -212,67 +213,6 @@ class _RegisterPageState extends State<RegisterPage> {
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SocialButtonsRow extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: const [
-        Expanded(
-          child: _SocialButton(
-            label: 'Google',
-            icon: Icons.g_mobiledata_rounded,
-          ),
-        ),
-        SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: _SocialButton(label: 'Facebook', icon: Icons.facebook_rounded),
-        ),
-        // SizedBox(width: AppSpacing.md),
-        // Expanded(
-        //   child: _SocialButton(
-        //     label: 'Apple',
-        //     icon: Icons.apple_rounded,
-        //   ),
-        // ),
-      ],
-    );
-  }
-}
-
-class _SocialButton extends StatelessWidget {
-  final String label;
-  final IconData icon;
-
-  const _SocialButton({required this.label, required this.icon});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {},
-      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.md,
-        ),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          border: Border.all(color: AppColors.border),
-          color: AppColors.surface,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 20, color: AppColors.textPrimary),
-            const SizedBox(width: AppSpacing.sm),
-            Text(label, style: AppFonts.mediumBlack14),
-          ],
         ),
       ),
     );
