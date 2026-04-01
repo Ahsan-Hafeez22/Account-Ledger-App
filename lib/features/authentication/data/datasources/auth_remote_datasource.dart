@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:account_ledger/core/error/exceptions.dart';
 import 'package:account_ledger/core/network/api_endpoints.dart';
 import 'package:account_ledger/features/authentication/data/models/auth_response_model.dart';
+import 'package:account_ledger/features/authentication/data/models/user_model.dart';
 // import 'package:account_ledger/features/authentication/data/models/user_model.dart';
 
 abstract class AuthRemoteDatasource {
@@ -11,9 +12,14 @@ abstract class AuthRemoteDatasource {
     required String password,
   });
   Future<AuthResponseModel> authenticateWithSocial(SocialAuthData authData);
+  Future<Map<String, String>> refreshSession({required String refreshToken});
+  Future<UserModel> getUser();
   Future<AuthResponseModel> register({
     required String name,
     required String email,
+    required String phone,
+    required String defaultCurrency,
+    required DateTime dateOfBirth,
     required String password,
   });
 
@@ -24,6 +30,30 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
   final Dio dio;
 
   const AuthRemoteDatasourceImpl({required this.dio});
+
+  Never _throwTypedDio(DioException e, String scope) {
+    if (e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.sendTimeout ||
+        e.type == DioExceptionType.receiveTimeout) {
+      throw NetworkException(
+        message: 'Connection timed out. Please try again.',
+        code: '$scope-timeout',
+        details: e.message,
+      );
+    }
+    if (e.type == DioExceptionType.connectionError) {
+      throw const NetworkException(
+        message: 'No internet connection',
+        code: 'no-internet',
+      );
+    }
+    final statusCode = e.response?.statusCode;
+    throw ServerException(
+      message: _extractErrorMessage(e.response?.data, statusCode),
+      code: '$scope-failed-${statusCode ?? 'unknown'}',
+      details: e.response?.data ?? e.toString(),
+    );
+  }
 
   @override
   Future<AuthResponseModel> login({
@@ -42,12 +72,57 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     } on AppException {
       rethrow;
     } on DioException catch (e) {
-      final statusCode = e.response?.statusCode;
-      throw ServerException(
-        message: _extractErrorMessage(e.response?.data, statusCode),
-        code: 'login-failed-${statusCode ?? 'unknown'}',
-        details: e.response?.data ?? e.toString(),
+      _throwTypedDio(e, 'login');
+    }
+  }
+
+  @override
+  Future<Map<String, String>> refreshSession({required String refreshToken}) async {
+    try {
+      final response = await dio.post(
+        ApiEndpoints.refreshToken,
+        data: {'refreshToken': refreshToken},
+        options: Options(extra: {'skipAuth': true}),
       );
+      final data = response.data;
+      
+      final map = Map<String, dynamic>.from(data);
+      final access = (map['accessToken']??'') as String;
+      final rotatedRefresh = (map['refreshToken'] ?? '') as String;
+      if (access.isEmpty || rotatedRefresh.isEmpty) {
+        throw const ServerException(
+          message: 'Missing tokens in refresh response',
+          code: 'missing-refresh-tokens',
+        );
+      }
+      return {'accessToken': access, 'refreshToken': rotatedRefresh};
+    } on AppException {
+      rethrow;
+    } on DioException catch (e) {
+      _throwTypedDio(e, 'refresh');
+    }
+  }
+
+  @override
+  Future<UserModel> getUser() async {
+    try {
+      final response = await dio.get(ApiEndpoints.getUser);
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        final user = data['user'];
+        if (user is Map<String, dynamic>) {
+          return UserModel.fromJson(user);
+        }
+        return UserModel.fromJson(data);
+      }
+      throw const ServerException(
+        message: 'Invalid user response',
+        code: 'invalid-user-response',
+      );
+    } on AppException {
+      rethrow;
+    } on DioException catch (e) {
+      _throwTypedDio(e, 'get-user');
     }
   }
 
@@ -55,12 +130,22 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
   Future<AuthResponseModel> register({
     required String name,
     required String email,
+    required String phone,
+    required String defaultCurrency,
+    required DateTime dateOfBirth,
     required String password,
   }) async {
     try {
       final response = await dio.post(
         ApiEndpoints.register,
-        data: {'name': name, 'email': email, 'password': password},
+        data: {
+          'name': name,
+          'email': email,
+          'phone': phone,
+          'defaultCurrency': defaultCurrency,
+          'dateOfBirth': dateOfBirth.toIso8601String(),
+          'password': password,
+        },
       );
       final authResponse = AuthResponseModel.fromJson(
         response.data as Map<String, dynamic>,
@@ -69,12 +154,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     } on AppException {
       rethrow;
     } on DioException catch (e) {
-      final statusCode = e.response?.statusCode;
-      throw ServerException(
-        message: _extractErrorMessage(e.response?.data, statusCode),
-        code: 'signup-failed-${statusCode ?? 'unknown'}',
-        details: e.response?.data ?? e.toString(),
-      );
+      _throwTypedDio(e, 'signup');
     }
   }
 
@@ -92,6 +172,8 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       return authResponse;
     } on AppException {
       rethrow;
+    } on DioException catch (e) {
+      _throwTypedDio(e, 'social-auth');
     } catch (e) {
       throw ServerException(
         message: 'Social sign-in failed',
@@ -108,12 +190,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     } on AppException {
       rethrow;
     } on DioException catch (e) {
-      final statusCode = e.response?.statusCode;
-      throw ServerException(
-        message: _extractErrorMessage(e.response?.data, statusCode),
-        code: 'logout-failed-${statusCode ?? 'unknown'}',
-        details: e.response?.data ?? e.toString(),
-      );
+      _throwTypedDio(e, 'logout');
     }
   }
 
@@ -146,6 +223,6 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
     if (statusCode == 401) {
       return 'Session expired. Please log in again.';
     }
-    return 'Request failed. Please try again.';
+    return 'Request failed. Please try again. $statusCode';
   }
 }

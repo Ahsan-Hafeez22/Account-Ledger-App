@@ -1,11 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:account_ledger/core/routes/route_names.dart';
 import 'package:account_ledger/features/authentication/presentation/bloc/auth_bloc.dart';
 import 'package:account_ledger/features/authentication/presentation/pages/login_page.dart';
 import 'package:account_ledger/features/authentication/presentation/pages/register_page.dart';
+import 'package:account_ledger/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:account_ledger/features/splash/presentation/pages/splash_page.dart';
-import 'package:account_ledger/shared/components/bottom_nav_bar.dart';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:account_ledger/shared/app_bottom_navbar.dart';
 
 class AppRouter {
   final AuthBloc authBloc;
@@ -16,40 +17,35 @@ class AppRouter {
     initialLocation: RouteNames.splash,
     redirect: _redirect,
     routes: [
+      // Public Routes
       GoRoute(path: RouteNames.splash, builder: (_, __) => const SplashPage()),
-      // GoRoute(path: RouteNames.intro, builder: (_, __) => const IntroPage()),
-      // GoRoute(
-      //   path: RouteNames.onboarding,
-      //   // builder: (_, __) => const OnboardingPage(),
-      // ),
       GoRoute(path: RouteNames.login, builder: (_, __) => const LoginPage()),
       GoRoute(
         path: RouteNames.register,
         builder: (_, __) => const RegisterPage(),
       ),
+
+      // Shell Route with Bottom Navigation
       ShellRoute(
-        builder: (_, state, child) => _MainShell(state: state, child: child),
+        builder: (context, state, child) =>
+            _MainShell(state: state, child: child),
         routes: [
-          // GoRoute(
-          //   path: RouteNames.dashboard,
-          //   builder: (_, __) => const DashboardPage(),
-          // ),
           GoRoute(
-            path: RouteNames.analytics,
-            builder: (_, __) => const _PlaceholderPage(title: 'Analytics'),
+            path: RouteNames.dashboard,
+            builder: (_, __) => const DashboardPage(),
           ),
-          // GoRoute(
-          //   path: RouteNames.addTransaction,
-          //   builder: (_, __) => const AddTransactionPage(),
-          // ),
           GoRoute(
-            path: RouteNames.transactionList,
+            path: RouteNames.transaction,
             builder: (_, __) => const _PlaceholderPage(title: 'Transactions'),
           ),
-          // GoRoute(
-          //   path: RouteNames.profile,
-          //   builder: (_, __) => const ProfilePage(),
-          // ),
+          GoRoute(
+            path: RouteNames.account,
+            builder: (_, __) => const _PlaceholderPage(title: 'Accounts'),
+          ),
+          GoRoute(
+            path: RouteNames.setting,
+            builder: (_, __) => const _PlaceholderPage(title: 'Settings'),
+          ),
         ],
       ),
     ],
@@ -57,32 +53,39 @@ class AppRouter {
 
   String? _redirect(BuildContext context, GoRouterState state) {
     final isAuthenticated = authBloc.state is AuthAuthenticated;
+    final isUnauthenticated = authBloc.state is AuthUnauthenticated;
     final location = state.matchedLocation;
 
+    // Routes that don't require authentication
     const publicRoutes = [
       RouteNames.splash,
-      RouteNames.intro,
-      RouteNames.onboarding,
       RouteNames.login,
       RouteNames.register,
-      RouteNames.dashboard,
-      RouteNames.addTransaction,
-      RouteNames.profile,
-      RouteNames.analytics,
-      RouteNames.transactionList,
     ];
 
-    if (!isAuthenticated && !publicRoutes.contains(location))
+    // While splash is deciding, don't force redirects that cause flicker.
+    if (location == RouteNames.splash) {
+      return null;
+    }
+
+    // If user is not authenticated and trying to access protected route
+    if (isUnauthenticated && !publicRoutes.contains(location)) {
       return RouteNames.login;
+    }
+
+    // If user is authenticated and tries to go to login/register
     if (isAuthenticated &&
         (location == RouteNames.login || location == RouteNames.register)) {
       return RouteNames.dashboard;
     }
+
     return null;
   }
 }
 
-// ── Shell ──────────────────────────────────────────────────────────────────────
+// ──────────────────────────────────────────────────────────────
+// Main Shell with Bottom Navigation
+// ──────────────────────────────────────────────────────────────
 
 class _MainShell extends StatelessWidget {
   final GoRouterState state;
@@ -90,37 +93,40 @@ class _MainShell extends StatelessWidget {
 
   const _MainShell({required this.state, required this.child});
 
-  static const _routes = [
+  static const List<String> _navRoutes = [
     RouteNames.dashboard,
-    RouteNames.analytics,
-    RouteNames.addTransaction,
-    RouteNames.transactionList,
-    RouteNames.profile,
+    RouteNames.transaction,
+    RouteNames.account,
+    RouteNames.setting,
   ];
 
   int get _currentIndex {
     final location = state.matchedLocation;
-    final index = _routes.indexWhere(location.startsWith);
+    final index = _navRoutes.indexWhere((route) => location.startsWith(route));
     return index == -1 ? 0 : index;
   }
 
-  void _onTap(BuildContext context, int index) {
-    context.go(_routes[index]);
+  void _onTabTapped(BuildContext context, int index) {
+    if (index == _currentIndex) return; // Avoid unnecessary navigation
+    context.go(_navRoutes[index]);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: child,
-      bottomNavigationBar: AppBottomNavBar(
+      bottomNavigationBar: BottomNavBar(
         currentIndex: _currentIndex,
-        onTap: (index) => _onTap(context, index),
+        onTabChanged: (index) => _onTabTapped(context, index),
       ),
     );
   }
 }
 
-// ── Placeholder ────────────────────────────────────────────────────────────────
+// ──────────────────────────────────────────────────────────────
+// Placeholder Page (for routes under development)
+// ──────────────────────────────────────────────────────────────
 
 class _PlaceholderPage extends StatelessWidget {
   final String title;
@@ -130,9 +136,28 @@ class _PlaceholderPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(title: Text(title), centerTitle: true),
       body: Center(
-        child: Text(title, style: Theme.of(context).textTheme.headlineMedium),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.construction, size: 80, color: Colors.grey.shade400),
+            const SizedBox(height: 16),
+            Text(
+              '$title Page',
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Under Development',
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: Colors.grey),
+            ),
+          ],
+        ),
       ),
     );
   }

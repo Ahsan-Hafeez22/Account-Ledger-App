@@ -21,7 +21,9 @@ class DioClient {
            : baseUrl,
        _dio = Dio(
          BaseOptions(
-          baseUrl: baseUrl,
+           baseUrl: baseUrl.endsWith('/')
+               ? baseUrl.substring(0, baseUrl.length - 1)
+               : baseUrl,
            connectTimeout: connectTimeout,
            receiveTimeout: receiveTimeout,
            headers: {
@@ -34,6 +36,7 @@ class DioClient {
       DioInternetCheckInterceptor(internetChecker: internetChecker),
       DioAuthInterceptor(
         tokenStorage: tokenStorage,
+        dio: _dio,
         onUnauthorized: onUnauthorized,
       ),
       LoggingInterceptor(),

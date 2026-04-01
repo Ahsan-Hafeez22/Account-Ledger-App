@@ -4,6 +4,8 @@ class AuthResponseModel {
   final int? statusCode;
   final String? status;
   final String? message;
+  final bool? isNewUser;
+  final bool? isGoogleLinked;
   final String token;
   final String? refreshToken;
   final UserModel user;
@@ -12,6 +14,8 @@ class AuthResponseModel {
     this.statusCode,
     this.status,
     this.message,
+    this.isNewUser,
+    this.isGoogleLinked,
     required this.token,
     this.refreshToken,
     required this.user,
@@ -22,9 +26,10 @@ class AuthResponseModel {
       statusCode: json['statusCode'] as int?,
       status: json['status'] as String?,
       message: json['message'] as String?,
+      isNewUser: json['isNewUser'] as bool?,
+      isGoogleLinked: json['isGoogleLinked'] as bool?,
       token: (json['accessToken'] ?? json['token'] ?? '') as String,
-      refreshToken:
-          (json['refreshToken'] ?? json['refreshToken'] ?? '') as String,
+      refreshToken: json['refreshToken'] as String?,
       user: UserModel.fromJson(json['user'] as Map<String, dynamic>),
     );
   }

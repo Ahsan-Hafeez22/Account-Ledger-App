@@ -1,10 +1,14 @@
 abstract final class ApiEndpoints {
   // Auth
+  static const String googleWebClientId =
+      '782026035417-d7qje8jmfqgti1hgjfh93v6k827sqtni.apps.googleusercontent.com';
+
   static const String login = '/auth/login';
   static const String register = '/auth/register';
   static const String logout = '/auth/logout';
-  static const String refreshToken = '/auth/refresh';
-  static const String googleAuth = '/auth/googleAuth';
+  static const String googleAuth = '/auth/google-auth';
+  static const String getUser = '/auth/user';
+  static const String refreshToken = '/auth/refresh-token';
 
   // // Dashboard
   // static const String balance = '/dashboard/balance';

@@ -56,6 +56,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
     return TextFormField(
       controller: widget.controller,
       obscureText: _obscureText,
+      mouseCursor: SystemMouseCursors.text,
+      enableInteractiveSelection: true,
       keyboardType: widget.keyboardType,
       maxLines: widget.isPassword ? 1 : widget.maxLines,
       style: const TextStyle(fontSize: 16, color: AppColors.textPrimary),

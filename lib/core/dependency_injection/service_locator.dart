@@ -7,6 +7,7 @@ import 'package:account_ledger/core/network/api_client.dart';
 import 'package:account_ledger/core/network/internet_checker.dart';
 import 'package:account_ledger/core/storage/secure_storage_datasource.dart';
 import 'package:account_ledger/features/authentication/data/datasources/token_storage_datasource.dart';
+import 'package:account_ledger/features/authentication/presentation/bloc/auth_bloc.dart';
 import 'package:dio/dio.dart';
 
 final sl = GetIt.instance;
@@ -30,7 +31,12 @@ Future<void> initServiceLocator() async {
       tokenStorage: sl(),
       onUnauthorized: () async {
         await sl<TokenStorageDataSource>().clearTokens();
+        try {
+          sl<AuthBloc>().add(const AuthUnauthorizedDetected());
+        } catch (_) {}
       },
+      connectTimeout: const Duration(seconds: 60),
+      receiveTimeout: const Duration(seconds: 60),
     ),
   );
   sl.registerLazySingleton<Dio>(() => sl<DioClient>().dio);

@@ -1,5 +1,3 @@
-import 'package:account_ledger/core/utils/custom_snack_bar.dart';
-import 'package:account_ledger/features/authentication/presentation/bloc/auth_bloc.dart';
 import 'package:account_ledger/features/authentication/presentation/widget/social_button_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,7 +8,10 @@ import 'package:account_ledger/core/constants/app_fonts.dart';
 import 'package:account_ledger/core/constants/app_spacing.dart';
 import 'package:account_ledger/core/constants/app_strings.dart';
 import 'package:account_ledger/core/extensions/sizedbox_extentions.dart';
+import 'package:account_ledger/core/extensions/string_extensions.dart';
 import 'package:account_ledger/core/routes/route_names.dart';
+import 'package:account_ledger/core/utils/custom_snack_bar.dart';
+import 'package:account_ledger/features/authentication/presentation/bloc/auth_bloc.dart';
 import 'package:account_ledger/shared/widgets/custom_button.dart';
 import 'package:account_ledger/shared/widgets/custom_text_field.dart';
 
@@ -25,13 +26,18 @@ class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _currencyController = TextEditingController(text: 'PKR');
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  DateTime? _dateOfBirth;
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose();
+    _currencyController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -39,10 +45,22 @@ class _RegisterPageState extends State<RegisterPage> {
 
   void _onSubmit() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
+    final dob = _dateOfBirth;
+    if (dob == null) {
+      CustomSnackBar.show(
+        context,
+        message: 'Please select your date of birth',
+        type: SnackBarType.warning,
+      );
+      return;
+    }
     context.read<AuthBloc>().add(
       AuthRegisterRequested(
         name: _nameController.text.trim(),
         email: _emailController.text.trim(),
+        phone: _phoneController.text.trim(),
+        defaultCurrency: _currencyController.text.trim().toUpperCase(),
+        dateOfBirth: dob,
         password: _passwordController.text.trim(),
       ),
     );
@@ -62,11 +80,37 @@ class _RegisterPageState extends State<RegisterPage> {
     if (value == null || value.trim().isEmpty) {
       return 'Please enter your email';
     }
-    final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
-    if (!emailRegex.hasMatch(value.trim())) {
+    if (!value.trim().isValidEmail) {
       return 'Please enter a valid email address';
     }
     return null;
+  }
+
+  String? _validatePhone(String? value) {
+    final v = value?.trim() ?? '';
+    if (v.isEmpty) return 'Please enter your phone number';
+    if (v.length < 7) return 'Please enter a valid phone number';
+    return null;
+  }
+
+  String? _validateCurrency(String? value) {
+    final v = value?.trim() ?? '';
+    if (v.isEmpty) return 'Please enter a currency code (e.g. PKR)';
+    if (v.length != 3) return 'Currency must be 3 letters (e.g. PKR)';
+    return null;
+  }
+
+  Future<void> _pickDateOfBirth() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime(now.year - 18, now.month, now.day),
+      firstDate: DateTime(1900),
+      lastDate: now,
+    );
+    if (picked != null) {
+      setState(() => _dateOfBirth = picked);
+    }
   }
 
   String? _validatePassword(String? value) {
@@ -140,6 +184,43 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 CustomTextField(
+                  controller: _phoneController,
+                  label: 'Phone',
+                  hint: '+923001234567',
+                  keyboardType: TextInputType.phone,
+                  validator: _validatePhone,
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                CustomTextField(
+                  controller: _currencyController,
+                  label: 'Currency',
+                  hint: 'PKR',
+                  validator: _validateCurrency,
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                InkWell(
+                  onTap: _pickDateOfBirth,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                  child: InputDecorator(
+                    decoration: const InputDecoration(
+                      labelText: 'Date of birth',
+                      border: UnderlineInputBorder(),
+                    ),
+                    child: Text(
+                      _dateOfBirth == null
+                          ? 'Select date'
+                          : '${_dateOfBirth!.year.toString().padLeft(4, '0')}-${_dateOfBirth!.month.toString().padLeft(2, '0')}-${_dateOfBirth!.day.toString().padLeft(2, '0')}',
+                      style: TextStyle(
+                        color: _dateOfBirth == null
+                            ? AppColors.textHint
+                            : AppColors.textPrimary,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                CustomTextField(
                   controller: _passwordController,
                   label: AppStrings.password,
                   hint: 'Create a strong password',
@@ -163,7 +244,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         message: "Sign Up Success",
                         type: SnackBarType.success,
                       );
-                      // context.go(RouteNames.analytics);
+                      context.go(RouteNames.dashboard);
                     } else if (state is AuthFailure) {
                       CustomSnackBar.show(
                         context,

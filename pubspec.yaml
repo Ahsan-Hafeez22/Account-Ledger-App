@@ -40,6 +40,10 @@ dependencies:
   flutter_svg: ^2.2.3
   cached_network_image: ^3.4.1
   shimmer: ^3.0.0
+  # Bottom navbar
+  persistent_bottom_nav_bar:
+    git:
+      url: https://github.com/HamzaSamirAmmar/PersistentBottomNavBar.git
 
   # Utilities
   intl: ^0.19.0

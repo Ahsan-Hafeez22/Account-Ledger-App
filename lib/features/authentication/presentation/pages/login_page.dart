@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:account_ledger/core/extensions/string_extensions.dart';
 import 'package:account_ledger/core/utils/custom_snack_bar.dart';
 import 'package:account_ledger/features/authentication/presentation/widget/app_logo_container.dart';
@@ -130,8 +132,9 @@ class _LoginPageState extends State<LoginPage> {
                           message: "Login Success",
                           type: SnackBarType.success,
                         );
-                        // context.go(RouteNames.analytics);
+                        context.go(RouteNames.dashboard);
                       } else if (state is AuthFailure) {
+                        log("Error: ${state.message}");
                         CustomSnackBar.show(
                           context,
                           message: state.message,
@@ -147,11 +150,9 @@ class _LoginPageState extends State<LoginPage> {
                       );
                     },
                   ),
-                  AppSpacing.xxl.height,
-                  Divider(),
-                  AppSpacing.xxl.height,
+                  AppSpacing.lg.height,
                   SocialButtonsRow(),
-                  AppSpacing.xxxl.height,
+                  AppSpacing.md.height,
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

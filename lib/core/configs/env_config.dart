@@ -13,13 +13,13 @@ class EnvConfig {
 
   static const EnvConfig development = EnvConfig(
     environment: Environment.development,
-    baseUrl: 'http://172.16.0.225:3000/api',
+    baseUrl: 'http://192.168.43.215:3000/api',
     apiKey: 'dev-api-key',
   );
 
   static const EnvConfig staging = EnvConfig(
     environment: Environment.staging,
-    baseUrl: 'http://172.16.0.225:3000/api',
+    baseUrl: 'http://192.168.43.215:3000/api',
     apiKey: 'staging-api-key',
   );
 

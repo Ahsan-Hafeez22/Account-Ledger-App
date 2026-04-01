@@ -11,10 +11,12 @@ abstract class AuthRepository {
   Future<Either<Failure, UserEntity>> register({
     required String name,
     required String email,
+    required String phone,
+    required String defaultCurrency,
+    required DateTime dateOfBirth,
     required String password,
   });
 
   Future<Either<Failure, void>> logout();
   Future<Either<Failure, UserEntity>> signInWithGoogle();
-  Future<Either<Failure, UserEntity>> getCachedUser();
 }

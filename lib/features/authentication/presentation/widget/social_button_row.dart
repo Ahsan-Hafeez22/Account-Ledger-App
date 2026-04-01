@@ -4,7 +4,9 @@ import 'package:account_ledger/core/constants/app_fonts.dart';
 import 'package:account_ledger/core/constants/app_spacing.dart';
 import 'package:account_ledger/core/extensions/sizedbox_extentions.dart';
 import 'package:account_ledger/core/extensions/widget_extensions.dart';
+import 'package:account_ledger/features/authentication/presentation/bloc/auth_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -36,7 +38,11 @@ class _SocialButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {},
+      onTap: () {
+        if (label == 'Google') {
+          context.read<AuthBloc>().add(GoogleAuthRequested());
+        }
+      },
       borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
       child: Container(
         decoration: BoxDecoration(

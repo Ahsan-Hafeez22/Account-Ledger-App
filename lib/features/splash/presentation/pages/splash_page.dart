@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
 import 'package:go_router/go_router.dart';
 import 'package:account_ledger/core/routes/route_names.dart';
 import 'package:account_ledger/core/constants/app_colors.dart';
 import 'package:account_ledger/core/constants/app_strings.dart';
+import 'package:account_ledger/core/dependency_injection/service_locator.dart';
+import 'package:account_ledger/features/authentication/data/datasources/auth_remote_datasource.dart';
+import 'package:account_ledger/features/authentication/data/datasources/token_storage_datasource.dart';
+import 'package:account_ledger/features/authentication/presentation/bloc/auth_bloc.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -16,11 +20,33 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 2), () {
+    _bootstrap();
+  }
+
+  Future<void> _bootstrap() async {
+    final tokenStorage = sl<TokenStorageDataSource>();
+
+    final refreshToken = await tokenStorage.getRefreshToken();
+    if (refreshToken == null || refreshToken.isEmpty) {
+      if (mounted) context.go(RouteNames.login);
+      return;
+    }
+
+    if (mounted) {
+      context.go(RouteNames.dashboard);
+    }
+
+    // Source of truth: fetch latest user. If access token is expired, the
+    // interceptor will refresh + retry automatically.
+    try {
+      final fresh = await sl<AuthRemoteDatasource>().getUser();
       if (mounted) {
-        context.go(RouteNames.login);
+        context.read<AuthBloc>().add(AuthUserLoaded(fresh.toEntity()));
       }
-    });
+    } catch (_) {
+      // If the refresh token is also expired, the interceptor will trigger
+      // onUnauthorized, which clears tokens+cache and the router redirects.
+    }
   }
 
   @override

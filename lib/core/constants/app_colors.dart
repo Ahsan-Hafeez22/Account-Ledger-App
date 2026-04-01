@@ -12,6 +12,7 @@ abstract final class AppColors {
   static const Color blackColor = Color(0xFF000000);
   static const Color whiteColor = Color(0xFFFFFFFF);
   static const Color textHint = Color(0xFF9CA3AF);
+  static const Color disableColor = Color(0xFF9CA3AF);
   static const Color income = Color(0xFF4CAF50);
   static const Color expense = Color(0xFFE53935);
   static const Color warning = Color(0xFFFFA726);
