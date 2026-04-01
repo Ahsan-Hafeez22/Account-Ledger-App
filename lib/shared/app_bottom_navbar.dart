@@ -1,63 +1,122 @@
 import 'package:account_ledger/core/constants/app_colors.dart';
+import 'package:account_ledger/features/account/presentation/pages/account_page.dart';
+import 'package:account_ledger/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:account_ledger/features/setting/presentation/pages/setting_page.dart';
+import 'package:account_ledger/features/transaction/presentation/pages/transaction_page.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:persistent_bottom_nav_bar/persistent_tab_view.dart';
 
-class BottomNavBar extends StatelessWidget {
-  final int currentIndex;
-  final ValueChanged<int> onTabChanged;
+class BottomNavScaffold extends StatefulWidget {
+  final int initialIndex;
 
-  const BottomNavBar({
-    super.key,
-    required this.currentIndex,
-    required this.onTabChanged,
-  });
+  const BottomNavScaffold({super.key, this.initialIndex = 0});
 
-  SystemUiOverlayStyle _getStatusBarStyle() {
-    final isLightTheme = currentIndex == 3; // Settings tab
+  @override
+  State<BottomNavScaffold> createState() => _BottomNavScaffoldState();
+}
 
-    return SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: isLightTheme
-          ? Brightness.dark
-          : Brightness.light,
-      statusBarBrightness: isLightTheme ? Brightness.light : Brightness.dark,
-    );
+class _BottomNavScaffoldState extends State<BottomNavScaffold> {
+  late final PersistentTabController _controller;
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = PersistentTabController(initialIndex: widget.initialIndex);
+    _screens = const [
+      DashboardPage(),
+      TransactionPage(),
+      AccountPage(),
+      SettingPage(),
+    ];
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateStatusBarStyle(_controller.index);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateStatusBarStyle(_controller.index);
+    });
+  }
+
+  void _updateStatusBarStyle(int index) {
+    if (!mounted) return;
+  }
+
+  List<PersistentBottomNavBarItem> _items() {
+    return [
+      PersistentBottomNavBarItem(
+        icon: const Icon(Icons.home_rounded),
+        inactiveIcon: const Icon(Icons.home_outlined),
+        title: 'Home',
+        activeColorPrimary: AppColors.blackColor,
+        inactiveColorPrimary: AppColors.disableColor,
+      ),
+      PersistentBottomNavBarItem(
+        icon: const Icon(Icons.swap_horiz_rounded),
+        inactiveIcon: const Icon(Icons.swap_horiz_outlined),
+        title: 'Transactions',
+        activeColorPrimary: AppColors.blackColor,
+        inactiveColorPrimary: AppColors.disableColor,
+      ),
+      PersistentBottomNavBarItem(
+        icon: const Icon(Icons.account_balance_wallet_rounded),
+        inactiveIcon: const Icon(Icons.account_balance_wallet_outlined),
+        title: 'Accounts',
+        activeColorPrimary: AppColors.blackColor,
+        inactiveColorPrimary: AppColors.disableColor,
+      ),
+      PersistentBottomNavBarItem(
+        icon: const Icon(Icons.settings_rounded),
+        inactiveIcon: const Icon(Icons.settings_outlined),
+        title: 'Settings',
+        activeColorPrimary: AppColors.blackColor,
+        inactiveColorPrimary: AppColors.disableColor,
+      ),
+    ];
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: _getStatusBarStyle(),
-      child: BottomNavigationBar(
-        currentIndex: currentIndex,
-        onTap: onTabChanged,
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateStatusBarStyle(_controller.index);
+    });
+
+    return Scaffold(
+      resizeToAvoidBottomInset: false,
+      backgroundColor: Colors.white,
+      body: PersistentTabView(
+        context,
+        controller: _controller,
+        screens: _screens,
+        items: _items(),
         backgroundColor: Colors.white,
-        elevation: 8,
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppColors.blackColor,
-        unselectedItemColor: AppColors.disableColor,
-        selectedFontSize: 12,
-        unselectedFontSize: 12,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
-        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home_rounded),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.swap_horiz_outlined),
-            activeIcon: Icon(Icons.swap_horiz_rounded),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            activeIcon: Icon(Icons.account_balance_wallet_rounded),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings_outlined),
-            activeIcon: Icon(Icons.settings_rounded),
-          ),
-        ],
+        hideNavigationBarWhenKeyboardShows: true,
+        navBarHeight: 60,
+        onItemSelected: (index) {
+          _updateStatusBarStyle(index);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _updateStatusBarStyle(index);
+          });
+          setState(() {});
+        },
+        navBarStyle: NavBarStyle.style12,
+        itemAnimationProperties: const ItemAnimationProperties(
+          duration: Duration(milliseconds: 300),
+          curve: Curves.ease,
+        ),
+        screenTransitionAnimation: const ScreenTransitionAnimation(
+          animateTabTransition: true,
+          curve: Curves.ease,
+          duration: Duration(milliseconds: 200),
+        ),
       ),
     );
   }

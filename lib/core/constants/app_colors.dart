@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 abstract final class AppColors {
   static const Color primary = Color(0xFF2ebd9e);
   static const Color secondary = Color(0xFF03DAC5);
-  static const Color background = Color(0xFFfbfaf9);
+  static const Color background = Color(0xFFF3F2F2);
   static const Color surface = Color(0xFFFFFFFF);
   static const Color card = Color(0xFFFFFFFF);
   static const Color iconColor = Color(0xFFFFFFFF);
@@ -27,4 +27,12 @@ abstract final class AppColors {
   static const Color entertainment = Color(0xFFFFE66D);
   static const Color health = Color(0xFF95E1D3);
   static const Color other = Color(0xFFA8A8A8);
+  static const Color accentPink = Color(0xFFE94E77); // For "Upgrade Now" button
+  static const Color darkIconBg = Color(0xFF2C2C2C); // For Dark Mode icon
+  static const Color notificationIconBg = Color(0xFFFF69B4);
+  static const Color privacyIconBg = Color(0xFFE94E77);
+  static const Color securityIconBg = Color(0xFFF06292);
+  static const Color accountIconBg = Color(0xFF66BB6A);
+  static const Color helpIconBg = Color(0xFF4DB6AC);
+  static const Color aboutIconBg = Color(0xFF80CBC4);
 }

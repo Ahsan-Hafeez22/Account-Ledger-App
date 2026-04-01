@@ -25,6 +25,8 @@ class _SplashPageState extends State<SplashPage> {
 
   Future<void> _bootstrap() async {
     final tokenStorage = sl<TokenStorageDataSource>();
+    // Capture bloc reference before navigating away (widget will unmount).
+    final authBloc = context.read<AuthBloc>();
 
     final refreshToken = await tokenStorage.getRefreshToken();
     if (refreshToken == null || refreshToken.isEmpty) {
@@ -40,9 +42,7 @@ class _SplashPageState extends State<SplashPage> {
     // interceptor will refresh + retry automatically.
     try {
       final fresh = await sl<AuthRemoteDatasource>().getUser();
-      if (mounted) {
-        context.read<AuthBloc>().add(AuthUserLoaded(fresh.toEntity()));
-      }
+      authBloc.add(AuthUserLoaded(fresh.toEntity()));
     } catch (_) {
       // If the refresh token is also expired, the interceptor will trigger
       // onUnauthorized, which clears tokens+cache and the router redirects.
