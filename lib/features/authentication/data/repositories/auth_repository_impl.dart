@@ -1,3 +1,4 @@
+import 'package:account_ledger/features/authentication/data/datasources/social_auth_datasource.dart';
 import 'package:dartz/dartz.dart';
 import 'package:account_ledger/core/error/exceptions.dart';
 import 'package:account_ledger/core/error/failures.dart';
@@ -8,15 +9,20 @@ import 'package:account_ledger/features/authentication/domain/entities/user_enti
 import 'package:account_ledger/features/authentication/domain/repositories/auth_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  final AuthRemoteDatasource remoteDatasource;
-  final AuthLocalDatasource localDatasource;
-  final TokenStorageDataSource tokenStorageDatasource;
+  final AuthRemoteDatasource _remoteDatasource;
+  final AuthLocalDatasource _localDatasource;
+  final SocialAuthDataSource _socialAuthDataSource;
+  final TokenStorageDataSource _tokenStorageDatasource;
 
   const AuthRepositoryImpl({
-    required this.remoteDatasource,
-    required this.localDatasource,
-    required this.tokenStorageDatasource,
-  });
+    required AuthRemoteDatasource remoteDatasource,
+    required AuthLocalDatasource localDatasource,
+    required TokenStorageDataSource tokenStorageDatasource,
+    required SocialAuthDataSource socialAuthDataSource,
+  }) : _remoteDatasource = remoteDatasource,
+       _localDatasource = localDatasource,
+       _tokenStorageDatasource = tokenStorageDatasource,
+       _socialAuthDataSource = socialAuthDataSource;
 
   @override
   Future<Either<Failure, UserEntity>> login({
@@ -24,7 +30,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
   }) async {
     try {
-      final authResponse = await remoteDatasource.login(
+      final authResponse = await _remoteDatasource.login(
         email: email,
         password: password,
       );
@@ -35,15 +41,15 @@ class AuthRepositoryImpl implements AuthRepository {
           code: 'missing-access-token',
         );
       }
-      await tokenStorageDatasource.storeAccessToken(authResponse.token);
-      await localDatasource.cacheUser(userModel);
+      await _tokenStorageDatasource.storeAccessToken(authResponse.token);
+      await _localDatasource.cacheUser(userModel);
       return Right(userModel.toEntity());
     } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
+      return Left(ServerFailure(message: 'Unexpected error: $e'));
     } on NetworkException catch (e) {
-      return Left(NetworkFailure(e.message));
+      return Left(NetworkFailure(message: e.message, code: e.code));
     } on CacheException catch (e) {
-      return Left(CacheFailure(e.message));
+      return Left(CacheFailure(message: e.message, code: e.code));
     }
   }
 
@@ -54,49 +60,80 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
   }) async {
     try {
-      final authResponse = await remoteDatasource.register(
+      final authResponse = await _remoteDatasource.register(
         name: name,
         email: email,
         password: password,
       );
       final userModel = authResponse.user;
       if (authResponse.token.isNotEmpty) {
-        await tokenStorageDatasource.storeAccessToken(authResponse.token);
+        await _tokenStorageDatasource.storeAccessToken(authResponse.token);
       }
-      await localDatasource.cacheUser(userModel);
+      await _localDatasource.cacheUser(userModel);
       return Right(userModel.toEntity());
     } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
+      return Left(ServerFailure(message: 'Unexpected error: $e'));
     } on NetworkException catch (e) {
-      return Left(NetworkFailure(e.message));
+      return Left(NetworkFailure(message: e.message, code: e.code));
     } on CacheException catch (e) {
-      return Left(CacheFailure(e.message));
+      return Left(CacheFailure(message: e.message, code: e.code));
+    }
+  }
+
+  @override
+  Future<Either<Failure, UserEntity>> signInWithGoogle() async {
+    try {
+      final authData = await _socialAuthDataSource.signInWithGoogle();
+
+      // Exchange Google ID token with your API (same tokens/user shape as email login).
+      final backendUser = await _remoteDatasource.authenticateWithSocial(
+        authData,
+      );
+      final userModel = backendUser.user;
+      if (backendUser.token.isNotEmpty) {
+        await _tokenStorageDatasource.storeAccessToken(backendUser.token);
+      }
+      return Right(userModel);
+    } on CancelledException catch (e) {
+      return Left(CancelledFailure(message: e.message, code: e.code));
+    } on AuthException catch (e) {
+      return Left(AuthFailure(message: e.message, code: e.code));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message, code: e.code));
+    } catch (e) {
+      return Left(
+        ServerFailure(
+          message: 'Unexpected error during Google sign-in: ${e.toString()}',
+        ),
+      );
     }
   }
 
   @override
   Future<Either<Failure, void>> logout() async {
     try {
-      await remoteDatasource.logout();
-      await tokenStorageDatasource.clearTokens();
-      await localDatasource.clearCache();
+      await _remoteDatasource.logout();
+      await _tokenStorageDatasource.clearTokens();
+      await _localDatasource.clearCache();
       return const Right(null);
     } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
+      return Left(ServerFailure(message: 'Unexpected error: $e'));
     } on NetworkException catch (e) {
-      return Left(NetworkFailure(e.message));
+      return Left(NetworkFailure(message: e.message, code: e.code));
     } on CacheException catch (e) {
-      return Left(CacheFailure(e.message));
+      return Left(CacheFailure(message: e.message, code: e.code));
     }
   }
 
   @override
   Future<Either<Failure, UserEntity>> getCachedUser() async {
     try {
-      final userModel = await localDatasource.getCachedUser();
+      final userModel = await _localDatasource.getCachedUser();
       return Right(userModel.toEntity());
     } on CacheException catch (e) {
-      return Left(CacheFailure(e.message));
+      return Left(CacheFailure(message: e.message, code: e.code));
     }
   }
 }

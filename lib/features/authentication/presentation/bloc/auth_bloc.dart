@@ -1,3 +1,4 @@
+import 'package:account_ledger/features/authentication/domain/usecases/google_auth_usecase.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:account_ledger/core/usecase/usecase.dart';
@@ -15,17 +16,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final RegisterUseCase registerUseCase;
   final LogoutUseCase logoutUseCase;
   final GetCachedUserUseCase getCachedUserUseCase;
+  final GoogleAuthUsecase googleAuthUsecase;
 
   AuthBloc({
     required this.loginUseCase,
     required this.registerUseCase,
     required this.logoutUseCase,
     required this.getCachedUserUseCase,
+    required this.googleAuthUsecase,
   }) : super(const AuthInitial()) {
     on<AuthLoginRequested>(_onLoginRequested);
     on<AuthRegisterRequested>(_onRegisterRequested);
     on<AuthLogoutRequested>(_onLogoutRequested);
     on<AuthCheckStatusRequested>(_onCheckStatus);
+    on<GoogleAuthRequested>(_onGooleAuthRequested);
   }
 
   Future<void> _onLoginRequested(
@@ -81,6 +85,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     result.fold(
       (_) => emit(const AuthUnauthenticated()),
       (user) => emit(AuthAuthenticated(user)),
+    );
+  }
+
+  Future<void> _onGooleAuthRequested(
+    GoogleAuthRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthLoading());
+    final result = await googleAuthUsecase(const NoParams());
+    result.fold(
+      (failure) => emit(AuthFailure(failure.message)),
+      (_) => emit(const AuthUnauthenticated()),
     );
   }
 }

@@ -23,6 +23,8 @@ class AuthResponseModel {
       status: json['status'] as String?,
       message: json['message'] as String?,
       token: (json['accessToken'] ?? json['token'] ?? '') as String,
+      refreshToken:
+          (json['refreshToken'] ?? json['refreshToken'] ?? '') as String,
       user: UserModel.fromJson(json['user'] as Map<String, dynamic>),
     );
   }

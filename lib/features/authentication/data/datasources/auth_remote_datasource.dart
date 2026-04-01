@@ -1,3 +1,4 @@
+import 'package:account_ledger/features/authentication/data/datasources/social_auth_datasource.dart';
 import 'package:dio/dio.dart';
 import 'package:account_ledger/core/error/exceptions.dart';
 import 'package:account_ledger/core/network/api_endpoints.dart';
@@ -9,7 +10,7 @@ abstract class AuthRemoteDatasource {
     required String email,
     required String password,
   });
-
+  Future<AuthResponseModel> authenticateWithSocial(SocialAuthData authData);
   Future<AuthResponseModel> register({
     required String name,
     required String email,
@@ -73,6 +74,29 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
         message: _extractErrorMessage(e.response?.data, statusCode),
         code: 'signup-failed-${statusCode ?? 'unknown'}',
         details: e.response?.data ?? e.toString(),
+      );
+    }
+  }
+
+  @override
+  Future<AuthResponseModel> authenticateWithSocial(
+    SocialAuthData authData,
+  ) async {
+    try {
+      final body = <String, dynamic>{'idToken': authData.idToken};
+      final String endpoint = ApiEndpoints.googleAuth;
+      final response = await dio.post(endpoint, data: body);
+      final authResponse = AuthResponseModel.fromJson(
+        response.data as Map<String, dynamic>,
+      );
+      return authResponse;
+    } on AppException {
+      rethrow;
+    } catch (e) {
+      throw ServerException(
+        message: 'Social sign-in failed',
+        code: 'social-auth-failed',
+        details: e.toString(),
       );
     }
   }

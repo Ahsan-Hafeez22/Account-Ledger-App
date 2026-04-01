@@ -37,7 +37,7 @@ dependencies:
   # UI & Styling
   google_fonts: ^6.2.1
   flutter_screenutil: ^5.9.3
-  flutter_svg: ^2.0.16
+  flutter_svg: ^2.2.3
   cached_network_image: ^3.4.1
   shimmer: ^3.0.0
 
@@ -51,6 +51,7 @@ dependencies:
   fluttertoast: ^8.2.12
   internet_connection_checker_plus: ^2.7.2
   flutter_secure_storage: ^9.2.4
+  google_sign_in: ^6.2.1
 
 dev_dependencies:
   flutter_test:

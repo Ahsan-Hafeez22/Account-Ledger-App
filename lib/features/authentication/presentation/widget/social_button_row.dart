@@ -1,3 +1,4 @@
+import 'package:account_ledger/core/constants/app_assets.dart';
 import 'package:account_ledger/core/constants/app_colors.dart';
 import 'package:account_ledger/core/constants/app_fonts.dart';
 import 'package:account_ledger/core/constants/app_spacing.dart';
@@ -5,13 +6,10 @@ import 'package:account_ledger/core/extensions/sizedbox_extentions.dart';
 import 'package:account_ledger/core/extensions/widget_extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/svg.dart';
 
 class SocialButtonsRow extends StatelessWidget {
-  static const _socials = [
-    (label: 'Google', icon: Icons.g_mobiledata_rounded),
-    (label: 'Facebook', icon: Icons.facebook_rounded),
-    // (label: 'Apple', icon: Icons.apple_rounded),
-  ];
+  static const _socials = [(label: 'Google'), (label: 'Facebook')];
 
   const SocialButtonsRow({super.key});
 
@@ -21,9 +19,7 @@ class SocialButtonsRow extends StatelessWidget {
       children: _socials
           .expand(
             (s) => [
-              Expanded(
-                child: _SocialButton(label: s.label, icon: s.icon),
-              ),
+              Expanded(child: _SocialButton(label: s.label)),
               if (s != _socials.last) 8.0.width,
             ],
           )
@@ -34,9 +30,8 @@ class SocialButtonsRow extends StatelessWidget {
 
 class _SocialButton extends StatelessWidget {
   final String label;
-  final IconData icon;
 
-  const _SocialButton({required this.label, required this.icon});
+  const _SocialButton({required this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +47,13 @@ class _SocialButton extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 16.sp, color: AppColors.textPrimary),
+            label == 'Google'
+                ? SvgPicture.asset(AppAssets.googleIcon, height: 18.r)
+                : Icon(
+                    Icons.facebook_rounded,
+                    size: 22.r,
+                    color: Colors.blueAccent,
+                  ),
             10.0.width,
             Text(label, style: AppFonts.mediumBlack14),
           ],
