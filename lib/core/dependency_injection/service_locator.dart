@@ -3,6 +3,7 @@ import 'package:account_ledger/core/theme/theme_cubit.dart';
 import 'package:get_it/get_it.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:account_ledger/core/dependency_injection/account_injection.dart';
 import 'package:account_ledger/core/dependency_injection/auth_injection.dart';
 import 'package:account_ledger/core/network/api_client.dart';
 import 'package:account_ledger/core/network/internet_checker.dart';
@@ -45,6 +46,7 @@ Future<void> initServiceLocator() async {
 
   // Features
   initAuthInjection(sl);
+  initAccountInjection(sl);
   // initDashboardInjection(sl);
   // initTransactionInjection(sl);
   // initAnalyticsInjection(sl);

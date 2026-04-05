@@ -47,6 +47,17 @@ abstract final class Validators {
     return null;
   }
 
+  /// Account security PIN (plain); API expects field `pin`.
+  static String? accountPin(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Pin code is required';
+    }
+    if (!RegExp(r'^\d{4}$').hasMatch(value.trim())) {
+      return 'Pin code must be 4 digits';
+    }
+    return null;
+  }
+
   static String? phone(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Phone number is required';

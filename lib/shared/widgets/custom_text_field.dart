@@ -1,6 +1,7 @@
 import 'package:account_ledger/core/constants/app_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:account_ledger/core/constants/app_colors.dart';
+import 'package:flutter/services.dart';
 
 class CustomTextField extends StatefulWidget {
   final TextEditingController controller;
@@ -12,6 +13,7 @@ class CustomTextField extends StatefulWidget {
   final Widget? prefixIcon;
   final Widget? suffixIcon;
   final int maxLines;
+  final bool pinCodeField;
   final bool readOnly;
 
   const CustomTextField({
@@ -26,6 +28,7 @@ class CustomTextField extends StatefulWidget {
     this.suffixIcon,
     this.maxLines = 1,
     this.readOnly = false,
+    this.pinCodeField = false,
   });
 
   @override
@@ -63,6 +66,9 @@ class _CustomTextFieldState extends State<CustomTextField> {
       mouseCursor: SystemMouseCursors.text,
       enableInteractiveSelection: true,
       readOnly: widget.readOnly,
+      inputFormatters: [
+        LengthLimitingTextInputFormatter(widget.pinCodeField ? 4 : 100),
+      ],
       keyboardType: widget.keyboardType,
       maxLines: widget.isPassword ? 1 : widget.maxLines,
       style: context.appFonts.black14,

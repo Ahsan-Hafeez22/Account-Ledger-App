@@ -25,7 +25,6 @@ class _SplashPageState extends State<SplashPage> {
 
   Future<void> _bootstrap() async {
     final tokenStorage = sl<TokenStorageDataSource>();
-    // Capture bloc reference before navigating away (widget will unmount).
     final authBloc = context.read<AuthBloc>();
 
     final refreshToken = await tokenStorage.getRefreshToken();
@@ -34,18 +33,23 @@ class _SplashPageState extends State<SplashPage> {
       return;
     }
 
-    if (mounted) {
-      context.go(RouteEndpoints.dashboard);
-    }
-
-    // Source of truth: fetch latest user. If access token is expired, the
-    // interceptor will refresh + retry automatically.
+    // Stay on splash until session is valid and [AuthBloc] is authenticated.
+    // If we [go] to dashboard while still [AuthInitial], the router redirects
+    // to login (flicker) while getUser / refresh-token runs in the background.
     try {
       final fresh = await sl<AuthRemoteDatasource>().getUser();
+      if (!mounted) return;
+
+      // Subscribe before [add] so we never miss the emission.
+      final authed = authBloc.stream.firstWhere((s) => s is AuthAuthenticated);
       authBloc.add(AuthUserLoaded(fresh.toEntity()));
+      await authed;
+
+      if (!mounted) return;
+      context.go(RouteEndpoints.dashboard);
     } catch (_) {
-      // If the refresh token is also expired, the interceptor will trigger
-      // onUnauthorized, which clears tokens+cache and the router redirects.
+      if (!mounted) return;
+      context.go(RouteEndpoints.login);
     }
   }
 

@@ -119,15 +119,18 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       final data = response.data;
 
       final map = Map<String, dynamic>.from(data);
-      final access = (map['accessToken'] ?? '') as String;
-      final rotatedRefresh = (map['refreshToken'] ?? '') as String;
-      if (access.isEmpty || rotatedRefresh.isEmpty) {
+      final access = (map['accessToken'] ?? map['access_token'] ?? map['token'] ?? '') as String;
+      final rotatedRefresh = (map['refreshToken'] ?? map['refresh_token'] ?? '') as String;
+      if (access.isEmpty) {
         throw const ServerException(
-          message: 'Missing tokens in refresh response',
-          code: 'missing-refresh-tokens',
+          message: 'Missing access token in refresh response',
+          code: 'missing-access-after-refresh',
         );
       }
-      return {'accessToken': access, 'refreshToken': rotatedRefresh};
+      return {
+        'accessToken': access,
+        'refreshToken': rotatedRefresh.isNotEmpty ? rotatedRefresh : refreshToken,
+      };
     } on AppException {
       rethrow;
     } on DioException catch (e) {

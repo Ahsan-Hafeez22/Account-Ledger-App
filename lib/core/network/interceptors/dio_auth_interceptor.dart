@@ -90,26 +90,52 @@ class DioAuthInterceptor extends QueuedInterceptor {
       throw const AuthException(message: 'Missing refresh token', code: 'no-refresh-token');
     }
 
-    final response = await _dio.post(
-      ApiEndpoints.refreshToken,
-      data: {'refreshToken': refreshToken},
-      options: Options(extra: {'skipAuth': true}),
+    // Use a short-lived client without interceptors so refresh is never blocked
+    // by the same QueuedInterceptor / error chain that triggered it, and so a
+    // failed user call cannot prevent the refresh HTTP request from being sent.
+    final refreshDio = Dio(
+      BaseOptions(
+        baseUrl: _dio.options.baseUrl,
+        connectTimeout: _dio.options.connectTimeout,
+        receiveTimeout: _dio.options.receiveTimeout,
+        headers: Map<String, dynamic>.from(_dio.options.headers),
+      ),
     );
-    final data = response.data;
-    if (data is! Map) {
-      throw const ServerException(
-        message: 'Invalid refresh response',
-        code: 'invalid-refresh-response',
+    try {
+      final response = await refreshDio.post<dynamic>(
+        ApiEndpoints.refreshToken,
+        data: {
+          'refreshToken': refreshToken,
+          'refresh_token': refreshToken,
+        },
       );
+      final data = response.data;
+      if (data is! Map) {
+        throw const ServerException(
+          message: 'Invalid refresh response',
+          code: 'invalid-refresh-response',
+        );
+      }
+      final map = Map<String, dynamic>.from(data);
+      final access = (map['accessToken'] ??
+              map['access_token'] ??
+              map['token'] ??
+              '') as String;
+      final rotatedRefresh = (map['refreshToken'] ?? map['refresh_token'] ?? '') as String;
+      if (access.isEmpty) {
+        throw const ServerException(
+          message: 'Missing access token in refresh response',
+          code: 'missing-access-after-refresh',
+        );
+      }
+      await _tokenStorage.storeAccessToken(access);
+      // Many APIs only return a new access token and keep the same refresh token.
+      if (rotatedRefresh.isNotEmpty) {
+        await _tokenStorage.storeRefreshToken(rotatedRefresh);
+      }
+    } finally {
+      refreshDio.close();
     }
-    final map = Map<String, dynamic>.from(data);
-    final access = (map['accessToken'] ?? map['token'] ?? '') as String;
-    final rotatedRefresh = (map['refreshToken'] ?? '') as String;
-    if (access.isEmpty || rotatedRefresh.isEmpty) {
-      throw const ServerException(message: 'Missing tokens in refresh response', code: 'missing-refresh-tokens');
-    }
-    await _tokenStorage.storeAccessToken(access);
-    await _tokenStorage.storeRefreshToken(rotatedRefresh);
   }
 
   Future<Response<dynamic>> _retryRequest(

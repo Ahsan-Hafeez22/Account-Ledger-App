@@ -17,22 +17,7 @@ abstract final class ApiEndpoints {
   static const String resetPassword = '/auth/reset-password';
   static const String changePassword = '/auth/change-password';
 
-  // // Dashboard
-  // static const String balance = '/dashboard/balance';
-  // static const String spendingCategories = '/dashboard/spending-categories';
-  // static const String upcomingBills = '/dashboard/upcoming-bills';
-  // static const String aiInsights = '/dashboard/ai-insights';
-
-  // // Transactions
-  // static const String transactions = '/transactions';
-  // static String transactionById(String id) => '/transactions/$id';
-
-  // // Analytics
-  // static const String analyticsSummary = '/analytics/summary';
-  // static const String categorySpending = '/analytics/category-spending';
-  // static const String savingsTrend = '/analytics/savings-trend';
-
-  // // Profile
-  // static const String profile = '/profile';
-  // static const String updateProfile = '/profile/update';
+  // Account
+  static const String createAccount = '/account/create-account';
+  static const String getAccount = '/account/account';
 }

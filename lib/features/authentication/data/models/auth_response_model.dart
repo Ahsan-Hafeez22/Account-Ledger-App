@@ -28,8 +28,9 @@ class AuthResponseModel {
       message: json['message'] as String?,
       isNewUser: json['isNewUser'] as bool?,
       isGoogleLinked: json['isGoogleLinked'] as bool?,
-      token: (json['accessToken'] ?? json['token'] ?? '') as String,
-      refreshToken: json['refreshToken'] as String?,
+      token: (json['accessToken'] ?? json['access_token'] ?? json['token'] ?? '') as String,
+      refreshToken:
+          json['refreshToken'] as String? ?? json['refresh_token'] as String?,
       user: UserModel.fromJson(json['user'] as Map<String, dynamic>),
     );
   }

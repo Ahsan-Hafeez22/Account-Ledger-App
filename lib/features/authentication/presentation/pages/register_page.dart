@@ -142,7 +142,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 CustomTextField(
                   controller: _phoneController,
                   label: 'Phone',
-                  hint: '+923001234567',
+                  hint: '3001234567',
                   keyboardType: TextInputType.phone,
                   validator: Validators.phone,
                 ),
@@ -168,12 +168,13 @@ class _RegisterPageState extends State<RegisterPage> {
                       _dateOfBirth == null
                           ? 'Select date'
                           : '${_dateOfBirth!.year.toString().padLeft(4, '0')}-${_dateOfBirth!.month.toString().padLeft(2, '0')}-${_dateOfBirth!.day.toString().padLeft(2, '0')}',
-                      style: TextStyle(
-                        color: _dateOfBirth == null
-                            ? AppColors.textHint
-                            : AppColors.textPrimary,
-                        fontSize: 16,
-                      ),
+                      style: _dateOfBirth == null
+                          ? context.appFonts.black16.copyWith(
+                              color: AppColors.textHint,
+                            )
+                          : context.appFonts.black16,
+
+                      // ),
                     ),
                   ),
                 ),
