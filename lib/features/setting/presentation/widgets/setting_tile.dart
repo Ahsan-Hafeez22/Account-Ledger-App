@@ -1,5 +1,4 @@
 import 'package:account_ledger/core/constants/app_colors.dart';
-import 'package:account_ledger/core/constants/app_fonts.dart';
 import 'package:account_ledger/core/extensions/num_extensions.dart';
 import 'package:flutter/material.dart';
 

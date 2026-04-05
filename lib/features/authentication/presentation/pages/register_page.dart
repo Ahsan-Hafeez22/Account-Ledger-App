@@ -9,7 +9,6 @@ import 'package:account_ledger/core/constants/app_fonts.dart';
 import 'package:account_ledger/core/constants/app_spacing.dart';
 import 'package:account_ledger/core/constants/app_strings.dart';
 import 'package:account_ledger/core/extensions/sizedbox_extentions.dart';
-import 'package:account_ledger/core/extensions/string_extensions.dart';
 import 'package:account_ledger/core/routes/route_names.dart';
 import 'package:account_ledger/core/utils/custom_snack_bar.dart';
 import 'package:account_ledger/features/authentication/presentation/bloc/auth_bloc.dart';
@@ -254,7 +253,10 @@ class _RegisterPageState extends State<RegisterPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('Already have an account?', style: context.appFonts.grey14),
+                    Text(
+                      'Already have an account?',
+                      style: context.appFonts.grey14,
+                    ),
                     TextButton(
                       onPressed: () => context.go(RouteEndpoints.login),
                       child: Text(

@@ -67,7 +67,7 @@ class ProfileHeader extends StatelessWidget {
 
                 Text(
                   formatDate(
-                    dob as DateTime,
+                    dob,
                   ), // You can also get this from user?.occupation
                   style: Theme.of(
                     context,
