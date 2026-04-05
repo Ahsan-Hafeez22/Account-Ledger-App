@@ -62,3 +62,70 @@ class AuthUserLoaded extends AuthEvent {
 class GoogleAuthRequested extends AuthEvent {
   const GoogleAuthRequested();
 }
+
+class AuthVerifyRegistrationOtpRequested extends AuthEvent {
+  final String email;
+  final String otp;
+
+  const AuthVerifyRegistrationOtpRequested({
+    required this.email,
+    required this.otp,
+  });
+
+  @override
+  List<Object?> get props => [email, otp];
+}
+
+class AuthResendRegistrationOtpRequested extends AuthEvent {
+  final String email;
+
+  const AuthResendRegistrationOtpRequested({required this.email});
+
+  @override
+  List<Object?> get props => [email];
+}
+
+class AuthForgotPasswordRequested extends AuthEvent {
+  final String email;
+
+  const AuthForgotPasswordRequested({required this.email});
+
+  @override
+  List<Object?> get props => [email];
+}
+
+class AuthResendForgotPasswordOtpRequested extends AuthEvent {
+  final String email;
+
+  const AuthResendForgotPasswordOtpRequested({required this.email});
+
+  @override
+  List<Object?> get props => [email];
+}
+
+class AuthVerifyResetOtpRequested extends AuthEvent {
+  final String email;
+  final String otp;
+
+  const AuthVerifyResetOtpRequested({required this.email, required this.otp});
+
+  @override
+  List<Object?> get props => [email, otp];
+}
+
+class AuthResetPasswordRequested extends AuthEvent {
+  final String resetToken;
+  final String password;
+
+  const AuthResetPasswordRequested({
+    required this.resetToken,
+    required this.password,
+  });
+
+  @override
+  List<Object?> get props => [resetToken, password];
+}
+
+class AuthDeleteAccountRequested extends AuthEvent {
+  const AuthDeleteAccountRequested();
+}

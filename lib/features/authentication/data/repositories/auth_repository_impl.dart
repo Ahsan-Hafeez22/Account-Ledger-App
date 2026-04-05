@@ -3,6 +3,7 @@ import 'package:dartz/dartz.dart';
 import 'package:account_ledger/core/error/exceptions.dart';
 import 'package:account_ledger/core/error/failures.dart';
 import 'package:account_ledger/features/authentication/data/datasources/auth_remote_datasource.dart';
+import 'package:account_ledger/features/authentication/data/models/auth_response_model.dart';
 import 'package:account_ledger/features/authentication/data/datasources/token_storage_datasource.dart';
 import 'package:account_ledger/features/authentication/domain/entities/user_entity.dart';
 import 'package:account_ledger/features/authentication/domain/repositories/auth_repository.dart';
@@ -44,7 +45,7 @@ class AuthRepositoryImpl implements AuthRepository {
       }
       return Right(userModel.toEntity());
     } on ServerException catch (e) {
-      return Left(ServerFailure(message: '$e'));
+      return Left(ServerFailure(message: e.message, code: e.code));
     } on NetworkException catch (e) {
       return Left(NetworkFailure(message: e.message, code: e.code));
     } on CacheException catch (e) {
@@ -53,7 +54,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, UserEntity>> register({
+  Future<Either<Failure, String>> register({
     required String name,
     required String email,
     required String phone,
@@ -62,7 +63,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
   }) async {
     try {
-      final authResponse = await _remoteDatasource.register(
+      final message = await _remoteDatasource.register(
         name: name,
         email: email,
         phone: phone,
@@ -70,17 +71,136 @@ class AuthRepositoryImpl implements AuthRepository {
         dateOfBirth: dateOfBirth,
         password: password,
       );
-      final userModel = authResponse.user;
-      if (authResponse.token.isNotEmpty) {
-        await _tokenStorageDatasource.storeAccessToken(authResponse.token);
-      }
-      if (authResponse.refreshToken != null &&
-          authResponse.refreshToken!.isNotEmpty) {
-        await _tokenStorageDatasource.storeRefreshToken(authResponse.refreshToken!);
-      }
-      return Right(userModel.toEntity());
+      return Right(message);
     } on ServerException catch (e) {
-      return Left(ServerFailure(message: '$e'));
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message, code: e.code));
+    } on CacheException catch (e) {
+      return Left(CacheFailure(message: e.message, code: e.code));
+    }
+  }
+
+  Future<Either<Failure, UserEntity>> _persistAuthResponse(
+    AuthResponseModel authResponse,
+  ) async {
+    final userModel = authResponse.user;
+    if (authResponse.token.isEmpty) {
+      return const Left(
+        ServerFailure(
+          message: 'Invalid response: missing access token',
+          code: 'missing-access-token',
+        ),
+      );
+    }
+    await _tokenStorageDatasource.storeAccessToken(authResponse.token);
+    if (authResponse.refreshToken != null &&
+        authResponse.refreshToken!.isNotEmpty) {
+      await _tokenStorageDatasource.storeRefreshToken(authResponse.refreshToken!);
+    }
+    return Right(userModel.toEntity());
+  }
+
+  @override
+  Future<Either<Failure, UserEntity>> verifyRegistrationOtp({
+    required String email,
+    required String otp,
+  }) async {
+    try {
+      final authResponse = await _remoteDatasource.verifyRegistrationOtp(
+        email: email,
+        otp: otp,
+      );
+      return _persistAuthResponse(authResponse);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message, code: e.code));
+    } on CacheException catch (e) {
+      return Left(CacheFailure(message: e.message, code: e.code));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> resendRegistrationOtp({
+    required String email,
+  }) async {
+    try {
+      await _remoteDatasource.resendOtp(email: email);
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message, code: e.code));
+    } on CacheException catch (e) {
+      return Left(CacheFailure(message: e.message, code: e.code));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> forgotPassword({
+    required String email,
+  }) async {
+    try {
+      final message = await _remoteDatasource.forgotPassword(email: email);
+      return Right(message);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message, code: e.code));
+    } on CacheException catch (e) {
+      return Left(CacheFailure(message: e.message, code: e.code));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String>> verifyResetOtp({
+    required String email,
+    required String otp,
+  }) async {
+    try {
+      final token = await _remoteDatasource.verifyResetOtp(
+        email: email,
+        otp: otp,
+      );
+      return Right(token);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message, code: e.code));
+    } on CacheException catch (e) {
+      return Left(CacheFailure(message: e.message, code: e.code));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> resetPassword({
+    required String resetToken,
+    required String password,
+  }) async {
+    try {
+      await _remoteDatasource.resetPassword(
+        resetToken: resetToken,
+        password: password,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message, code: e.code));
+    } on CacheException catch (e) {
+      return Left(CacheFailure(message: e.message, code: e.code));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteAccount() async {
+    try {
+      await _remoteDatasource.deleteAccount();
+      await _tokenStorageDatasource.clearTokens();
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
     } on NetworkException catch (e) {
       return Left(NetworkFailure(message: e.message, code: e.code));
     } on CacheException catch (e) {
@@ -132,7 +252,7 @@ class AuthRepositoryImpl implements AuthRepository {
       await _tokenStorageDatasource.clearTokens();
       return const Right(null);
     } on ServerException catch (e) {
-      return Left(ServerFailure(message: '$e'));
+      return Left(ServerFailure(message: e.message, code: e.code));
     } on NetworkException catch (e) {
       return Left(NetworkFailure(message: e.message, code: e.code));
     } on CacheException catch (e) {

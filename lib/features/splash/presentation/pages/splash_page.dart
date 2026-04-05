@@ -30,12 +30,12 @@ class _SplashPageState extends State<SplashPage> {
 
     final refreshToken = await tokenStorage.getRefreshToken();
     if (refreshToken == null || refreshToken.isEmpty) {
-      if (mounted) context.go(RouteNames.login);
+      if (mounted) context.go(RouteEndpoints.login);
       return;
     }
 
     if (mounted) {
-      context.go(RouteNames.dashboard);
+      context.go(RouteEndpoints.dashboard);
     }
 
     // Source of truth: fetch latest user. If access token is expired, the

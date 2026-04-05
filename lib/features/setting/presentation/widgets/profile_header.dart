@@ -1,4 +1,6 @@
 import 'package:account_ledger/core/constants/app_colors.dart';
+import 'package:account_ledger/core/extensions/sizedbox_extentions.dart';
+import 'package:account_ledger/core/utils/date_utils.dart';
 import 'package:account_ledger/features/authentication/presentation/bloc/auth_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,6 +15,8 @@ class ProfileHeader extends StatelessWidget {
         // Logic to extract user data safely
         final user = state is AuthAuthenticated ? state.user : null;
         final name = user?.name ?? "Guest User";
+        final email = user?.email ?? "No Email!";
+        final dob = user?.dateOfBirth ?? DateTime.now();
         final photoUrl = user?.avatarUrl;
 
         return Column(
@@ -38,22 +42,38 @@ class ProfileHeader extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Icon(
-                  Icons.location_on,
+                  Icons.mail,
                   size: 14,
                   color: AppColors.textSecondary,
                 ),
+                4.0.width,
                 Text(
-                  ' Stockholm, Sweden', // You can also get this from user?.location
+                  email, // You can also get this from user?.location
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
             ),
             const SizedBox(height: 4),
-            Text(
-              'Visual Designer', // You can also get this from user?.occupation
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+
+              children: [
+                const Icon(
+                  Icons.cake,
+                  size: 14,
+                  color: AppColors.textSecondary,
+                ),
+                4.0.width,
+
+                Text(
+                  formatDate(
+                    dob as DateTime,
+                  ), // You can also get this from user?.occupation
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
           ],
         );

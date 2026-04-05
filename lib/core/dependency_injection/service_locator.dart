@@ -1,4 +1,5 @@
 import 'package:account_ledger/core/configs/env_config.dart';
+import 'package:account_ledger/core/theme/theme_cubit.dart';
 import 'package:get_it/get_it.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,6 +17,7 @@ Future<void> initServiceLocator() async {
   // External
   final sharedPreferences = await SharedPreferences.getInstance();
   sl.registerLazySingleton<SharedPreferences>(() => sharedPreferences);
+  sl.registerLazySingleton(() => ThemeCubit(sl<SharedPreferences>()));
   sl.registerLazySingleton<SecureStorageDataSource>(
     SecureStorageDataSourceImpl.new,
   );

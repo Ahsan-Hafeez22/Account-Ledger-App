@@ -1,6 +1,12 @@
 import 'package:account_ledger/core/network/api_endpoints.dart';
 import 'package:account_ledger/features/authentication/data/datasources/social_auth_datasource.dart';
+import 'package:account_ledger/features/authentication/domain/usecases/delete_account_usecase.dart';
+import 'package:account_ledger/features/authentication/domain/usecases/forgot_password_usecase.dart';
 import 'package:account_ledger/features/authentication/domain/usecases/google_auth_usecase.dart';
+import 'package:account_ledger/features/authentication/domain/usecases/resend_registration_otp_usecase.dart';
+import 'package:account_ledger/features/authentication/domain/usecases/reset_password_usecase.dart';
+import 'package:account_ledger/features/authentication/domain/usecases/verify_registration_otp_usecase.dart';
+import 'package:account_ledger/features/authentication/domain/usecases/verify_reset_otp_usecase.dart';
 import 'package:get_it/get_it.dart';
 import 'package:account_ledger/features/authentication/data/datasources/auth_remote_datasource.dart';
 import 'package:account_ledger/features/authentication/data/repositories/auth_repository_impl.dart';
@@ -19,6 +25,12 @@ void initAuthInjection(GetIt sl) {
       registerUseCase: sl(),
       logoutUseCase: sl(),
       googleAuthUsecase: sl(),
+      verifyRegistrationOtpUseCase: sl(),
+      resendRegistrationOtpUseCase: sl(),
+      forgotPasswordUseCase: sl(),
+      verifyResetOtpUseCase: sl(),
+      resetPasswordUseCase: sl(),
+      deleteAccountUseCase: sl(),
     ),
   );
 
@@ -27,6 +39,12 @@ void initAuthInjection(GetIt sl) {
   sl.registerLazySingleton(() => RegisterUseCase(sl()));
   sl.registerLazySingleton(() => LogoutUseCase(sl()));
   sl.registerLazySingleton(() => GoogleAuthUsecase(sl()));
+  sl.registerLazySingleton(() => VerifyRegistrationOtpUseCase(sl()));
+  sl.registerLazySingleton(() => ResendRegistrationOtpUseCase(sl()));
+  sl.registerLazySingleton(() => ForgotPasswordUseCase(sl()));
+  sl.registerLazySingleton(() => VerifyResetOtpUseCase(sl()));
+  sl.registerLazySingleton(() => ResetPasswordUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteAccountUseCase(sl()));
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(

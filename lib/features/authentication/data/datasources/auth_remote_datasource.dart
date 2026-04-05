@@ -14,7 +14,9 @@ abstract class AuthRemoteDatasource {
   Future<AuthResponseModel> authenticateWithSocial(SocialAuthData authData);
   Future<Map<String, String>> refreshSession({required String refreshToken});
   Future<UserModel> getUser();
-  Future<AuthResponseModel> register({
+
+  /// OTP email sent; response has [message] only (no user/tokens).
+  Future<String> register({
     required String name,
     required String email,
     required String phone,
@@ -23,7 +25,23 @@ abstract class AuthRemoteDatasource {
     required String password,
   });
 
+  Future<AuthResponseModel> verifyRegistrationOtp({
+    required String email,
+    required String otp,
+  });
+
   Future<void> logout();
+  Future<void> resendOtp({required String email});
+  Future<String> forgotPassword({required String email});
+  Future<String> verifyResetOtp({
+    required String email,
+    required String otp,
+  });
+  Future<void> resetPassword({
+    required String resetToken,
+    required String password,
+  });
+  Future<void> deleteAccount();
 }
 
 class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
@@ -48,10 +66,21 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       );
     }
     final statusCode = e.response?.statusCode;
+    final data = e.response?.data;
+    int? retryAfterSeconds;
+    if (data is Map<String, dynamic> && data['retryAfterSeconds'] != null) {
+      final r = data['retryAfterSeconds'];
+      if (r is int) {
+        retryAfterSeconds = r;
+      } else if (r is num) {
+        retryAfterSeconds = r.toInt();
+      }
+    }
     throw ServerException(
-      message: _extractErrorMessage(e.response?.data, statusCode),
+      message: _extractErrorMessage(data, statusCode),
       code: '$scope-failed-${statusCode ?? 'unknown'}',
-      details: e.response?.data ?? e.toString(),
+      details: data ?? e.toString(),
+      retryAfterSeconds: retryAfterSeconds,
     );
   }
 
@@ -77,7 +106,9 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
   }
 
   @override
-  Future<Map<String, String>> refreshSession({required String refreshToken}) async {
+  Future<Map<String, String>> refreshSession({
+    required String refreshToken,
+  }) async {
     try {
       final response = await dio.post(
         ApiEndpoints.refreshToken,
@@ -85,9 +116,9 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
         options: Options(extra: {'skipAuth': true}),
       );
       final data = response.data;
-      
+
       final map = Map<String, dynamic>.from(data);
-      final access = (map['accessToken']??'') as String;
+      final access = (map['accessToken'] ?? '') as String;
       final rotatedRefresh = (map['refreshToken'] ?? '') as String;
       if (access.isEmpty || rotatedRefresh.isEmpty) {
         throw const ServerException(
@@ -127,7 +158,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
   }
 
   @override
-  Future<AuthResponseModel> register({
+  Future<String> register({
     required String name,
     required String email,
     required String phone,
@@ -147,14 +178,42 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
           'password': password,
         },
       );
-      final authResponse = AuthResponseModel.fromJson(
-        response.data as Map<String, dynamic>,
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        final message = data['message'];
+        if (message is String && message.isNotEmpty) {
+          return message;
+        }
+      }
+      throw const ServerException(
+        message: 'Unexpected registration response',
+        code: 'register-invalid-response',
       );
-      return authResponse;
     } on AppException {
       rethrow;
     } on DioException catch (e) {
-      _throwTypedDio(e, 'signup');
+      _throwTypedDio(e, 'register');
+    }
+  }
+
+  @override
+  Future<AuthResponseModel> verifyRegistrationOtp({
+    required String email,
+    required String otp,
+  }) async {
+    try {
+      final response = await dio.post(
+        ApiEndpoints.verifyOtp,
+        data: {'email': email, 'otp': otp},
+        options: Options(extra: {'skipAuth': true}),
+      );
+      return AuthResponseModel.fromJson(
+        response.data as Map<String, dynamic>,
+      );
+    } on AppException {
+      rethrow;
+    } on DioException catch (e) {
+      _throwTypedDio(e, 'verify-otp');
     }
   }
 
@@ -224,5 +283,97 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       return 'Session expired. Please log in again.';
     }
     return 'Request failed. Please try again. $statusCode';
+  }
+
+  @override
+  Future<void> deleteAccount() async {
+    try {
+      await dio.delete(ApiEndpoints.deleteAccount);
+    } on AppException {
+      rethrow;
+    } on DioException catch (e) {
+      _throwTypedDio(e, 'delete-account');
+    }
+  }
+
+  @override
+  Future<String> forgotPassword({required String email}) async {
+    try {
+      final response = await dio.post(
+        ApiEndpoints.forgotPassword,
+        data: {"email": email},
+      );
+      final data = response.data;
+      final message = data['message'];
+      if (message is String && message.isNotEmpty) {
+        return message;
+      }
+      throw const ServerException(
+        message: 'Invalid forgot-password response',
+        code: 'forgot-password-invalid-response',
+      );
+    } on AppException {
+      rethrow;
+    } on DioException catch (e) {
+      _throwTypedDio(e, 'forgot-password');
+    }
+  }
+
+  @override
+  Future<void> resetPassword({
+    required String resetToken,
+    required String password,
+  }) async {
+    try {
+      await dio.post(
+        ApiEndpoints.resetPassword,
+        data: {'resetToken': resetToken, 'password': password},
+        options: Options(extra: {'skipAuth': true}),
+      );
+    } on AppException {
+      rethrow;
+    } on DioException catch (e) {
+      _throwTypedDio(e, 'reset-password');
+    }
+  }
+
+  @override
+  Future<String> verifyResetOtp({
+    required String email,
+    required String otp,
+  }) async {
+    try {
+      final response = await dio.post(
+        ApiEndpoints.verifyResetOtp,
+        data: {'email': email, 'otp': otp},
+        options: Options(extra: {'skipAuth': true}),
+      );
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        final token = data['resetToken'];
+        if (token is String && token.isNotEmpty) {
+          return token;
+        }
+      }
+      throw const ServerException(
+        message: 'Invalid verify-reset-otp response',
+        code: 'verify-reset-otp-invalid',
+      );
+    } on AppException {
+      rethrow;
+    } on DioException catch (e) {
+      _throwTypedDio(e, 'verify-reset-otp');
+    }
+  }
+
+  @override
+  Future<void> resendOtp({required String email}) async {
+    try {
+      await dio.post(ApiEndpoints.resendOtp, data: {'email': email});
+    } on AppException {
+      rethrow;
+    } on DioException catch (e) {
+      _throwTypedDio(e, 'resend-otp');
+    }
   }
 }

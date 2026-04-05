@@ -47,8 +47,8 @@ class _SocialButton extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          border: Border.all(color: AppColors.border),
-          color: AppColors.surface,
+          border: Border.all(color: AppColors.whiteColor),
+          color: Theme.of(context).colorScheme.surface,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -61,7 +61,7 @@ class _SocialButton extends StatelessWidget {
                     color: Colors.blueAccent,
                   ),
             10.0.width,
-            Text(label, style: AppFonts.mediumBlack14),
+            Text(label, style: context.appFonts.black14),
           ],
         ).paddingSymmetric(h: 16, v: 12),
       ),

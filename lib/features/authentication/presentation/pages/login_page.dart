@@ -1,14 +1,13 @@
 import 'dart:developer';
 
-import 'package:account_ledger/core/extensions/string_extensions.dart';
 import 'package:account_ledger/core/utils/custom_snack_bar.dart';
+import 'package:account_ledger/core/utils/validators.dart';
 import 'package:account_ledger/features/authentication/presentation/widget/app_logo_container.dart';
 import 'package:account_ledger/features/authentication/presentation/widget/social_button_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:account_ledger/core/constants/app_colors.dart';
 import 'package:account_ledger/core/constants/app_fonts.dart';
 import 'package:account_ledger/core/constants/app_spacing.dart';
 import 'package:account_ledger/core/constants/app_strings.dart';
@@ -50,20 +49,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  String? _validateEmail(String? value) {
-    if (value == null || value.trim().isEmpty) return 'Please enter your email';
-    if (!value.isValidEmail) {
-      return 'Please enter a valid email';
-    }
-    return null;
-  }
-
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) return 'Please enter your password';
-    if (value.length < 6) return 'Minimum 6 characters';
-    return null;
-  }
-
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -78,7 +63,7 @@ class _LoginPageState extends State<LoginPage> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: SafeArea(
           child: SingleChildScrollView(
             padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
@@ -90,11 +75,11 @@ class _LoginPageState extends State<LoginPage> {
                   20.0.height,
                   AppLogo(),
                   40.0.height,
-                  Text('Log In', style: AppFonts.boldBlack24),
+                  Text('Log In', style: context.appFonts.boldBlack24),
                   4.0.height,
                   Text(
                     'Access your account and take control of your finances.',
-                    style: AppFonts.grey14,
+                    style: context.appFonts.grey14,
                   ),
                   32.0.height,
                   CustomTextField(
@@ -102,7 +87,7 @@ class _LoginPageState extends State<LoginPage> {
                     label: AppStrings.email,
                     hint: 'you@example.com',
                     keyboardType: TextInputType.emailAddress,
-                    validator: _validateEmail,
+                    validator: Validators.email,
                   ),
                   AppSpacing.xl.height,
                   CustomTextField(
@@ -110,13 +95,14 @@ class _LoginPageState extends State<LoginPage> {
                     label: AppStrings.password,
                     hint: 'Enter your password',
                     isPassword: true,
-                    validator: _validatePassword,
+                    validator: Validators.password,
                   ),
                   4.0.height,
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: () {},
+                      onPressed: () =>
+                          context.push(RouteEndpoints.forgotPassword),
                       child: Text(
                         AppStrings.forgotPassword,
                         style: AppFonts.mediumPrimary14,
@@ -132,7 +118,7 @@ class _LoginPageState extends State<LoginPage> {
                           message: "Login Success",
                           type: SnackBarType.success,
                         );
-                        context.go(RouteNames.dashboard);
+                        context.go(RouteEndpoints.dashboard);
                       } else if (state is AuthFailure) {
                         log("Error: ${state.message}");
                         CustomSnackBar.show(
@@ -156,9 +142,9 @@ class _LoginPageState extends State<LoginPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text("Don't have an account?", style: AppFonts.grey14),
+                      Text("Don't have an account?", style: context.appFonts.grey14),
                       TextButton(
-                        onPressed: () => context.push(RouteNames.register),
+                        onPressed: () => context.push(RouteEndpoints.register),
                         child: Text(
                           AppStrings.signUp,
                           style: AppFonts.mediumPrimary14,

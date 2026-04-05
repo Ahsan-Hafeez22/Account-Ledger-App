@@ -13,7 +13,7 @@ class Divider extends StatelessWidget {
         Expanded(child: Container(height: 1, color: AppColors.divider)),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          child: Text('Or continue with', style: AppFonts.grey14),
+          child: Text('Or continue with', style: context.appFonts.grey14),
         ),
         Expanded(child: Container(height: 1, color: AppColors.divider)),
       ],

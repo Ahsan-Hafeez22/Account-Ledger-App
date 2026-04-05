@@ -27,7 +27,18 @@ class AuthException extends AppException {
 
 /// Exception thrown when server/backend request fails
 class ServerException extends AppException {
-  const ServerException({required super.message, super.code, super.details});
+  /// Present when the API returns HTTP 429 with [retryAfterSeconds] (e.g. OTP cooldown).
+  final int? retryAfterSeconds;
+
+  const ServerException({
+    required super.message,
+    super.code,
+    super.details,
+    this.retryAfterSeconds,
+  });
+
+  @override
+  List<Object?> get props => [...super.props, retryAfterSeconds];
 
   @override
   String toString() =>

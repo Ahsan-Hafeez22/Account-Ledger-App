@@ -1,3 +1,4 @@
+import 'package:account_ledger/core/constants/app_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:account_ledger/core/constants/app_colors.dart';
 
@@ -11,6 +12,7 @@ class CustomTextField extends StatefulWidget {
   final Widget? prefixIcon;
   final Widget? suffixIcon;
   final int maxLines;
+  final bool readOnly;
 
   const CustomTextField({
     super.key,
@@ -23,6 +25,7 @@ class CustomTextField extends StatefulWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.maxLines = 1,
+    this.readOnly = false,
   });
 
   @override
@@ -55,12 +58,14 @@ class _CustomTextFieldState extends State<CustomTextField> {
 
     return TextFormField(
       controller: widget.controller,
+      onTapOutside: (_) => FocusScope.of(context).unfocus(),
       obscureText: _obscureText,
       mouseCursor: SystemMouseCursors.text,
       enableInteractiveSelection: true,
+      readOnly: widget.readOnly,
       keyboardType: widget.keyboardType,
       maxLines: widget.isPassword ? 1 : widget.maxLines,
-      style: const TextStyle(fontSize: 16, color: AppColors.textPrimary),
+      style: context.appFonts.black14,
       validator:
           widget.validator ??
           (val) => (val == null || val.isEmpty)

@@ -8,7 +8,8 @@ abstract class AuthRepository {
     required String password,
   });
 
-  Future<Either<Failure, UserEntity>> register({
+  /// Starts registration: server sends OTP email (no tokens yet).
+  Future<Either<Failure, String>> register({
     required String name,
     required String email,
     required String phone,
@@ -16,6 +17,27 @@ abstract class AuthRepository {
     required DateTime dateOfBirth,
     required String password,
   });
+
+  Future<Either<Failure, UserEntity>> verifyRegistrationOtp({
+    required String email,
+    required String otp,
+  });
+
+  Future<Either<Failure, void>> resendRegistrationOtp({required String email});
+
+  Future<Either<Failure, String>> forgotPassword({required String email});
+
+  Future<Either<Failure, String>> verifyResetOtp({
+    required String email,
+    required String otp,
+  });
+
+  Future<Either<Failure, void>> resetPassword({
+    required String resetToken,
+    required String password,
+  });
+
+  Future<Either<Failure, void>> deleteAccount();
 
   Future<Either<Failure, void>> logout();
   Future<Either<Failure, UserEntity>> signInWithGoogle();

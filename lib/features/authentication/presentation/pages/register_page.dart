@@ -1,3 +1,4 @@
+import 'package:account_ledger/core/utils/validators.dart';
 import 'package:account_ledger/features/authentication/presentation/widget/social_button_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -58,46 +59,12 @@ class _RegisterPageState extends State<RegisterPage> {
       AuthRegisterRequested(
         name: _nameController.text.trim(),
         email: _emailController.text.trim(),
-        phone: _phoneController.text.trim(),
+        phone: "+92${_phoneController.text.trim()}",
         defaultCurrency: _currencyController.text.trim().toUpperCase(),
         dateOfBirth: dob,
         password: _passwordController.text.trim(),
       ),
     );
-  }
-
-  String? _validateName(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Please enter your full name';
-    }
-    if (value.trim().length < 2) {
-      return 'Name looks too short';
-    }
-    return null;
-  }
-
-  String? _validateEmail(String? value) {
-    if (value == null || value.trim().isEmpty) {
-      return 'Please enter your email';
-    }
-    if (!value.trim().isValidEmail) {
-      return 'Please enter a valid email address';
-    }
-    return null;
-  }
-
-  String? _validatePhone(String? value) {
-    final v = value?.trim() ?? '';
-    if (v.isEmpty) return 'Please enter your phone number';
-    if (v.length < 7) return 'Please enter a valid phone number';
-    return null;
-  }
-
-  String? _validateCurrency(String? value) {
-    final v = value?.trim() ?? '';
-    if (v.isEmpty) return 'Please enter a currency code (e.g. PKR)';
-    if (v.length != 3) return 'Currency must be 3 letters (e.g. PKR)';
-    return null;
   }
 
   Future<void> _pickDateOfBirth() async {
@@ -113,16 +80,6 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
-  String? _validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Please create a password';
-    }
-    if (value.length < 6) {
-      return 'Password must be at least 6 characters';
-    }
-    return null;
-  }
-
   String? _validateConfirmPassword(String? value) {
     if (value == null || value.isEmpty) {
       return 'Please confirm your password';
@@ -136,7 +93,7 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      // backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -160,19 +117,19 @@ class _RegisterPageState extends State<RegisterPage> {
                 20.0.height,
                 Text(
                   'Create your Swift Ledger account',
-                  style: AppFonts.boldBlack24,
+                  style: context.appFonts.boldBlack24,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Sign up to build better money habits, visualize your progress, and unlock AI-powered financial insights.',
-                  style: AppFonts.grey14,
+                  style: context.appFonts.grey14,
                 ),
                 const SizedBox(height: 32),
                 CustomTextField(
                   controller: _nameController,
                   label: 'Full name',
                   hint: 'John Doe',
-                  validator: _validateName,
+                  validator: Validators.name,
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 CustomTextField(
@@ -180,7 +137,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   label: AppStrings.email,
                   hint: 'you@example.com',
                   keyboardType: TextInputType.emailAddress,
-                  validator: _validateEmail,
+                  validator: Validators.email,
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 CustomTextField(
@@ -188,14 +145,16 @@ class _RegisterPageState extends State<RegisterPage> {
                   label: 'Phone',
                   hint: '+923001234567',
                   keyboardType: TextInputType.phone,
-                  validator: _validatePhone,
+                  validator: Validators.phone,
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 CustomTextField(
                   controller: _currencyController,
                   label: 'Currency',
+                  readOnly: true,
+
                   hint: 'PKR',
-                  validator: _validateCurrency,
+                  // validator: _validateCurrency,
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 InkWell(
@@ -225,7 +184,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   label: AppStrings.password,
                   hint: 'Create a strong password',
                   isPassword: true,
-                  validator: _validatePassword,
+                  validator: Validators.password,
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 CustomTextField(
@@ -237,14 +196,28 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 const SizedBox(height: AppSpacing.xxl),
                 BlocConsumer<AuthBloc, AuthState>(
+                  listenWhen: (previous, current) =>
+                      current is AuthAuthenticated ||
+                      current is AuthRegistrationOtpSent ||
+                      (current is AuthFailure && previous is AuthLoading),
                   listener: (context, state) {
-                    if (state is AuthAuthenticated) {
+                    if (state is AuthRegistrationOtpSent) {
                       CustomSnackBar.show(
                         context,
-                        message: "Sign Up Success",
+                        message: state.message,
                         type: SnackBarType.success,
                       );
-                      context.go(RouteNames.dashboard);
+                      context.push(
+                        RouteEndpoints.otpVerification,
+                        extra: {'signUp': true, 'email': state.email},
+                      );
+                    } else if (state is AuthAuthenticated) {
+                      CustomSnackBar.show(
+                        context,
+                        message: 'Sign Up Success',
+                        type: SnackBarType.success,
+                      );
+                      context.go(RouteEndpoints.dashboard);
                     } else if (state is AuthFailure) {
                       CustomSnackBar.show(
                         context,
@@ -268,7 +241,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       child: Container(height: 1, color: AppColors.divider),
                     ),
                     const SizedBox(width: AppSpacing.md),
-                    Text('Or continue with', style: AppFonts.grey12),
+                    Text('Or continue with', style: context.appFonts.grey12),
                     const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: Container(height: 1, color: AppColors.divider),
@@ -281,9 +254,9 @@ class _RegisterPageState extends State<RegisterPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('Already have an account?', style: AppFonts.grey14),
+                    Text('Already have an account?', style: context.appFonts.grey14),
                     TextButton(
-                      onPressed: () => context.go(RouteNames.login),
+                      onPressed: () => context.go(RouteEndpoints.login),
                       child: Text(
                         AppStrings.signIn,
                         style: AppFonts.mediumPrimary14,

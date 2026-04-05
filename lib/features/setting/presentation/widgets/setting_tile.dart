@@ -28,7 +28,7 @@ class SettingsTile extends StatelessWidget {
         decoration: BoxDecoration(color: iconBgColor, shape: BoxShape.circle),
         child: Icon(icon, color: Colors.white, size: 20),
       ),
-      title: Text(title, style: AppFonts.mediumBlack16),
+      title: Text(title, style: Theme.of(context).textTheme.titleMedium),
       trailing:
           trailing ??
           const Icon(

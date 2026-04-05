@@ -1,7 +1,10 @@
 import 'package:account_ledger/core/routes/route_names.dart';
 import 'package:account_ledger/features/authentication/presentation/bloc/auth_bloc.dart';
+import 'package:account_ledger/features/authentication/presentation/pages/forgot_password_page.dart';
 import 'package:account_ledger/features/authentication/presentation/pages/login_page.dart';
+import 'package:account_ledger/features/authentication/presentation/pages/otp_verification_page.dart';
 import 'package:account_ledger/features/authentication/presentation/pages/register_page.dart';
+import 'package:account_ledger/features/authentication/presentation/pages/reset_password_page.dart';
 import 'package:account_ledger/features/splash/presentation/pages/splash_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -13,65 +16,131 @@ class AppRouter {
   AppRouter({required this.authBloc});
 
   late final GoRouter router = GoRouter(
-    initialLocation: RouteNames.splash,
+    initialLocation: RouteEndpoints.splash,
     redirect: _redirect,
     routes: [
       // Public Routes
-      GoRoute(path: RouteNames.splash, builder: (_, __) => const SplashPage()),
-      GoRoute(path: RouteNames.login, builder: (_, __) => const LoginPage()),
       GoRoute(
-        path: RouteNames.register,
+        path: RouteEndpoints.splash,
+        builder: (_, __) => const SplashPage(),
+      ),
+      GoRoute(
+        path: RouteEndpoints.login,
+        builder: (_, __) => const LoginPage(),
+      ),
+      GoRoute(
+        path: RouteEndpoints.register,
         builder: (_, __) => const RegisterPage(),
       ),
 
       // Persistent bottom nav scaffold routes
       GoRoute(
-        path: RouteNames.dashboard,
+        path: RouteEndpoints.dashboard,
         builder: (_, __) => const BottomNavScaffold(initialIndex: 0),
       ),
       GoRoute(
-        path: RouteNames.transaction,
+        path: RouteEndpoints.transaction,
         builder: (_, __) => const BottomNavScaffold(initialIndex: 1),
       ),
       GoRoute(
-        path: RouteNames.account,
+        path: RouteEndpoints.account,
         builder: (_, __) => const BottomNavScaffold(initialIndex: 2),
       ),
       GoRoute(
-        path: RouteNames.setting,
+        path: RouteEndpoints.setting,
         builder: (_, __) => const BottomNavScaffold(initialIndex: 3),
+      ),
+
+      // GoRoute(
+      //   path: RouteEndpoints.forgotPassword,
+      //   builder: (_, __) => const BottomNavScaffold(initialIndex: 3),
+      // ),
+      GoRoute(
+        path: RouteEndpoints.forgotPassword,
+        pageBuilder: (context, state) => fadeTransitionPage(
+          title: 'Forgot Password',
+          child: ForgotPasswordPage(),
+        ),
+      ),
+      GoRoute(
+        path: RouteEndpoints.resetPassword,
+        pageBuilder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final email = extra?['email'] as String? ?? '';
+          final resetToken = extra?['resetToken'] as String? ?? '';
+          return fadeTransitionPage(
+            title: 'Reset Password',
+            child: ResetPasswordPage(email: email, resetToken: resetToken),
+          );
+        },
+      ),
+      GoRoute(
+        path: RouteEndpoints.otpVerification,
+        pageBuilder: (context, state) {
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          final bool comingFromSignUp = extra['signUp'] as bool? ?? false;
+          final String email = extra['email'] as String? ?? '';
+
+          return fadeTransitionPage(
+            title: 'Verify OTP',
+            child: OtpVerificationPage(
+              comingFromSignUp: comingFromSignUp,
+              email: email,
+            ),
+          );
+        },
       ),
     ],
   );
 
   String? _redirect(BuildContext context, GoRouterState state) {
     final isAuthenticated = authBloc.state is AuthAuthenticated;
-    final isUnauthenticated = authBloc.state is AuthUnauthenticated;
     final location = state.matchedLocation;
 
     // Routes that don't require authentication
     const publicRoutes = [
-      RouteNames.splash,
-      RouteNames.login,
-      RouteNames.register,
+      RouteEndpoints.splash,
+      RouteEndpoints.login,
+      RouteEndpoints.register,
+      RouteEndpoints.forgotPassword,
+      RouteEndpoints.otpVerification,
+      RouteEndpoints.resetPassword,
     ];
 
     // While splash is deciding, don't force redirects that cause flicker.
-    if (location == RouteNames.splash) {
+    if (location == RouteEndpoints.splash) {
       return null;
     }
 
-    // If user is not authenticated and trying to access protected route
-    if (isUnauthenticated && !publicRoutes.contains(location)) {
-      return RouteNames.login;
+    // Any non-[AuthAuthenticated] state cannot access protected routes
+    if (!isAuthenticated && !publicRoutes.contains(location)) {
+      return RouteEndpoints.login;
     }
 
-    // If user is authenticated and tries to go to login/register
+    // Authenticated users should not stay on auth/onboarding screens
     if (isAuthenticated &&
-        (location == RouteNames.login || location == RouteNames.register)) {
-      return RouteNames.dashboard;
+        (location == RouteEndpoints.login ||
+            location == RouteEndpoints.register ||
+            location == RouteEndpoints.forgotPassword ||
+            location == RouteEndpoints.otpVerification ||
+            location == RouteEndpoints.resetPassword)) {
+      return RouteEndpoints.dashboard;
     }
 
     return null;
   }
+}
+
+CustomTransitionPage<void> fadeTransitionPage({
+  required Widget child,
+  required String title,
+}) {
+  return CustomTransitionPage<void>(
+    key: ValueKey(title),
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(opacity: animation, child: child);
+    },
+    transitionDuration: const Duration(milliseconds: 300),
+  );
 }

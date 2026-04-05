@@ -1,4 +1,5 @@
 import 'package:account_ledger/core/constants/app_colors.dart';
+import 'package:account_ledger/core/constants/app_fonts.dart';
 import 'package:account_ledger/features/account/presentation/pages/account_page.dart';
 import 'package:account_ledger/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:account_ledger/features/setting/presentation/pages/setting_page.dart';
@@ -44,35 +45,43 @@ class _BottomNavScaffoldState extends State<BottomNavScaffold> {
     if (!mounted) return;
   }
 
-  List<PersistentBottomNavBarItem> _items() {
+  List<PersistentBottomNavBarItem> _items(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final navTheme = Theme.of(context).bottomNavigationBarTheme;
+    final active =
+        navTheme.selectedItemColor ?? scheme.primary;
+    final inactive =
+        navTheme.unselectedItemColor ??
+        AppColors.secondaryTextColor(Theme.of(context).brightness);
+
     return [
       PersistentBottomNavBarItem(
         icon: const Icon(Icons.home_rounded),
         inactiveIcon: const Icon(Icons.home_outlined),
         title: 'Home',
-        activeColorPrimary: AppColors.blackColor,
-        inactiveColorPrimary: AppColors.disableColor,
+        activeColorPrimary: active,
+        inactiveColorPrimary: inactive,
       ),
       PersistentBottomNavBarItem(
         icon: const Icon(Icons.swap_horiz_rounded),
         inactiveIcon: const Icon(Icons.swap_horiz_outlined),
         title: 'Transactions',
-        activeColorPrimary: AppColors.blackColor,
-        inactiveColorPrimary: AppColors.disableColor,
+        activeColorPrimary: active,
+        inactiveColorPrimary: inactive,
       ),
       PersistentBottomNavBarItem(
         icon: const Icon(Icons.account_balance_wallet_rounded),
         inactiveIcon: const Icon(Icons.account_balance_wallet_outlined),
         title: 'Accounts',
-        activeColorPrimary: AppColors.blackColor,
-        inactiveColorPrimary: AppColors.disableColor,
+        activeColorPrimary: active,
+        inactiveColorPrimary: inactive,
       ),
       PersistentBottomNavBarItem(
         icon: const Icon(Icons.settings_rounded),
         inactiveIcon: const Icon(Icons.settings_outlined),
         title: 'Settings',
-        activeColorPrimary: AppColors.blackColor,
-        inactiveColorPrimary: AppColors.disableColor,
+        activeColorPrimary: active,
+        inactiveColorPrimary: inactive,
       ),
     ];
   }
@@ -89,15 +98,19 @@ class _BottomNavScaffoldState extends State<BottomNavScaffold> {
       _updateStatusBarStyle(_controller.index);
     });
 
+    final navBarBackground =
+        Theme.of(context).bottomNavigationBarTheme.backgroundColor ??
+        Theme.of(context).colorScheme.surface;
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      backgroundColor: Colors.white,
+      backgroundColor: context.scaffoldBg,
       body: PersistentTabView(
         context,
         controller: _controller,
         screens: _screens,
-        items: _items(),
-        backgroundColor: Colors.white,
+        backgroundColor: navBarBackground,
+        items: _items(context),
         hideNavigationBarWhenKeyboardShows: true,
         navBarHeight: 60,
         onItemSelected: (index) {

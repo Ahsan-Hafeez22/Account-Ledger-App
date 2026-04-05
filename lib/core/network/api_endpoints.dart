@@ -9,6 +9,12 @@ abstract final class ApiEndpoints {
   static const String googleAuth = '/auth/google-auth';
   static const String getUser = '/auth/user';
   static const String refreshToken = '/auth/refresh-token';
+  static const String deleteAccount = '/auth/delete-user';
+  static const String resendOtp = '/auth/resend-otp';
+  static const String forgotPassword = '/auth/forgot-password';
+  static const String verifyOtp = '/auth/verify-otp';
+  static const String verifyResetOtp = '/auth/verify-reset-otp';
+  static const String resetPassword = '/auth/reset-password';
 
   // // Dashboard
   // static const String balance = '/dashboard/balance';

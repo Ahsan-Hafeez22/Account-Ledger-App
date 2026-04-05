@@ -35,7 +35,11 @@ class AppLogo extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.wallet_rounded, size: 45.sp, color: Colors.white),
+            Icon(
+              Icons.wallet_rounded,
+              size: 45.sp,
+              color: AppColors.whiteColor,
+            ),
             10.0.width,
             RichText(
               text: TextSpan(

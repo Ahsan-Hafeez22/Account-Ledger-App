@@ -28,4 +28,37 @@ abstract final class Validators {
     if (parsed <= 0) return 'Amount must be greater than zero';
     return null;
   }
+
+  static String? name(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Name is required';
+    }
+
+    final trimmed = value.trim();
+
+    if (trimmed.length < 2) {
+      return 'Name must be at least 2 characters';
+    }
+
+    if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(trimmed)) {
+      return 'Name can only contain letters';
+    }
+
+    return null;
+  }
+
+  static String? phone(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Phone number is required';
+    }
+
+    final trimmed = value.trim();
+
+    // Pakistani mobile numbers (without +92)
+    if (!RegExp(r'^3\d{9}$').hasMatch(trimmed)) {
+      return 'Enter a valid mobile number (e.g. 3001234567)';
+    }
+
+    return null;
+  }
 }
