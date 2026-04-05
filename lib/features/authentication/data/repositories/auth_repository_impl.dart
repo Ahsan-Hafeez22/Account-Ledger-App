@@ -41,7 +41,9 @@ class AuthRepositoryImpl implements AuthRepository {
       await _tokenStorageDatasource.storeAccessToken(authResponse.token);
       if (authResponse.refreshToken != null &&
           authResponse.refreshToken!.isNotEmpty) {
-        await _tokenStorageDatasource.storeRefreshToken(authResponse.refreshToken!);
+        await _tokenStorageDatasource.storeRefreshToken(
+          authResponse.refreshToken!,
+        );
       }
       return Right(userModel.toEntity());
     } on ServerException catch (e) {
@@ -96,7 +98,9 @@ class AuthRepositoryImpl implements AuthRepository {
     await _tokenStorageDatasource.storeAccessToken(authResponse.token);
     if (authResponse.refreshToken != null &&
         authResponse.refreshToken!.isNotEmpty) {
-      await _tokenStorageDatasource.storeRefreshToken(authResponse.refreshToken!);
+      await _tokenStorageDatasource.storeRefreshToken(
+        authResponse.refreshToken!,
+      );
     }
     return Right(userModel.toEntity());
   }
@@ -260,4 +264,23 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, void>> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    try {
+      await _remoteDatasource.changePassword(
+        oldPassword: oldPassword,
+        newPassword: newPassword,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message, code: e.code));
+    } on CacheException catch (e) {
+      return Left(CacheFailure(message: e.message, code: e.code));
+    }
+  }
 }

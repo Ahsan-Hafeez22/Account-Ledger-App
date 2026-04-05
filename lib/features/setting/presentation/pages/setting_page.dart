@@ -16,10 +16,20 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
-class SettingPage extends StatelessWidget {
+class SettingPage extends StatefulWidget {
   const SettingPage({super.key});
 
+  @override
+  State<SettingPage> createState() => _SettingPageState();
+}
+
+class _SettingPageState extends State<SettingPage> {
   static const Color _deleteIconBg = Color(0xFFE53935);
+
+  /// True only while the full-screen loading dialog from delete / logout is shown.
+  /// Prevents [Navigator.pop] from popping a pushed route (e.g. change-password) when
+  /// another feature emits [AuthLoading] → [AuthFailure] on the same [AuthBloc].
+  bool _rootLoadingDialogOpen = false;
 
   Future<void> _confirmDelete(BuildContext context) async {
     bool go = await AppAlertDialog.show(
@@ -29,7 +39,6 @@ class SettingPage extends StatelessWidget {
       iconColor: Colors.red,
       cancelText: 'cancel',
       showCancelButton: true,
-      // onCancel: () => context.pop(),
       title: "Alert",
 
       messageStyle: context.appFonts.black12,
@@ -40,13 +49,12 @@ class SettingPage extends StatelessWidget {
           context.read<AuthBloc>().add(const AuthDeleteAccountRequested()),
     );
     if (go != true || !context.mounted) return;
+    setState(() => _rootLoadingDialogOpen = true);
     showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (_) => const Center(child: CircularProgressIndicator()),
     );
-
-    // context.read<AuthBloc>().add(const AuthDeleteAccountRequested());
   }
 
   void _confirmLogout(BuildContext context) async {
@@ -65,13 +73,12 @@ class SettingPage extends StatelessWidget {
           context.read<AuthBloc>().add(const AuthLogoutRequested()),
     );
     if (go != true || !context.mounted) return;
+    setState(() => _rootLoadingDialogOpen = true);
     showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (_) => const Center(child: CircularProgressIndicator()),
     );
-
-    // context.read<AuthBloc>().add(const AuthDeleteAccountRequested());
   }
 
   @override
@@ -81,10 +88,12 @@ class SettingPage extends StatelessWidget {
           (current is AuthFailure || current is AuthUnauthenticated) &&
           previous is AuthLoading,
       listener: (context, state) {
+        if (!_rootLoadingDialogOpen) return;
         final nav = Navigator.of(context, rootNavigator: true);
         if (nav.canPop()) {
           nav.pop();
         }
+        setState(() => _rootLoadingDialogOpen = false);
         if (state is AuthFailure) {
           CustomSnackBar.show(
             context,
@@ -170,10 +179,12 @@ class SettingPage extends StatelessWidget {
                         iconBgColor: AppColors.privacyIconBg,
                         title: 'Privacy',
                       ),
-                      const SettingsTile(
+                      SettingsTile(
                         icon: Icons.security,
                         iconBgColor: AppColors.securityIconBg,
                         title: 'Security',
+                        onTap: () =>
+                            context.push(RouteEndpoints.changePassword),
                       ),
                       const SettingsTile(
                         icon: Icons.person,

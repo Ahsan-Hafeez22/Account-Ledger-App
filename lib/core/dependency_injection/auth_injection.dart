@@ -1,5 +1,6 @@
 import 'package:account_ledger/core/network/api_endpoints.dart';
 import 'package:account_ledger/features/authentication/data/datasources/social_auth_datasource.dart';
+import 'package:account_ledger/features/authentication/domain/usecases/change_password_usecase.dart';
 import 'package:account_ledger/features/authentication/domain/usecases/delete_account_usecase.dart';
 import 'package:account_ledger/features/authentication/domain/usecases/forgot_password_usecase.dart';
 import 'package:account_ledger/features/authentication/domain/usecases/google_auth_usecase.dart';
@@ -31,6 +32,7 @@ void initAuthInjection(GetIt sl) {
       verifyResetOtpUseCase: sl(),
       resetPasswordUseCase: sl(),
       deleteAccountUseCase: sl(),
+      changePasswordUseCase: sl(),
     ),
   );
 
@@ -45,6 +47,7 @@ void initAuthInjection(GetIt sl) {
   sl.registerLazySingleton(() => VerifyResetOtpUseCase(sl()));
   sl.registerLazySingleton(() => ResetPasswordUseCase(sl()));
   sl.registerLazySingleton(() => DeleteAccountUseCase(sl()));
+  sl.registerLazySingleton(() => ChangePasswordUseCase(sl()));
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(

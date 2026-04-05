@@ -51,10 +51,7 @@ class AuthForgotPasswordOtpSent extends AuthState {
   final String email;
   final String message;
 
-  const AuthForgotPasswordOtpSent({
-    required this.email,
-    required this.message,
-  });
+  const AuthForgotPasswordOtpSent({required this.email, required this.message});
 
   @override
   List<Object?> get props => [email, message];
@@ -64,10 +61,7 @@ class AuthResetOtpVerified extends AuthState {
   final String email;
   final String resetToken;
 
-  const AuthResetOtpVerified({
-    required this.email,
-    required this.resetToken,
-  });
+  const AuthResetOtpVerified({required this.email, required this.resetToken});
 
   @override
   List<Object?> get props => [email, resetToken];
@@ -84,4 +78,8 @@ class AuthOtpResent extends AuthState {
 
 class AuthPasswordResetSuccess extends AuthState {
   const AuthPasswordResetSuccess();
+}
+
+class AuthChangePasswordSuccess extends AuthState {
+  const AuthChangePasswordSuccess();
 }

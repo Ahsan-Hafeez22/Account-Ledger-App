@@ -5,6 +5,7 @@ import 'package:account_ledger/features/authentication/presentation/pages/login_
 import 'package:account_ledger/features/authentication/presentation/pages/otp_verification_page.dart';
 import 'package:account_ledger/features/authentication/presentation/pages/register_page.dart';
 import 'package:account_ledger/features/authentication/presentation/pages/reset_password_page.dart';
+import 'package:account_ledger/features/authentication/presentation/pages/security_page.dart';
 import 'package:account_ledger/features/splash/presentation/pages/splash_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -71,6 +72,15 @@ class AppRouter {
           return fadeTransitionPage(
             title: 'Reset Password',
             child: ResetPasswordPage(email: email, resetToken: resetToken),
+          );
+        },
+      ),
+      GoRoute(
+        path: RouteEndpoints.changePassword,
+        pageBuilder: (context, state) {
+          return fadeTransitionPage(
+            title: 'Change Password',
+            child: SecurityPage(),
           );
         },
       ),

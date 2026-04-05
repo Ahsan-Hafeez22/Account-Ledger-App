@@ -1,3 +1,4 @@
+import 'package:account_ledger/features/authentication/domain/usecases/change_password_usecase.dart';
 import 'package:account_ledger/features/authentication/domain/usecases/delete_account_usecase.dart';
 import 'package:account_ledger/features/authentication/domain/usecases/forgot_password_usecase.dart';
 import 'package:account_ledger/features/authentication/domain/usecases/google_auth_usecase.dart';
@@ -26,6 +27,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final ForgotPasswordUseCase forgotPasswordUseCase;
   final VerifyResetOtpUseCase verifyResetOtpUseCase;
   final ResetPasswordUseCase resetPasswordUseCase;
+  final ChangePasswordUseCase changePasswordUseCase;
   final DeleteAccountUseCase deleteAccountUseCase;
 
   AuthBloc({
@@ -39,6 +41,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required this.verifyResetOtpUseCase,
     required this.resetPasswordUseCase,
     required this.deleteAccountUseCase,
+    required this.changePasswordUseCase,
   }) : super(const AuthInitial()) {
     on<AuthLoginRequested>(_onLoginRequested);
     on<AuthRegisterRequested>(_onRegisterRequested);
@@ -53,6 +56,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthVerifyResetOtpRequested>(_onVerifyResetOtp);
     on<AuthResetPasswordRequested>(_onResetPassword);
     on<AuthDeleteAccountRequested>(_onDeleteAccount);
+    on<AuthChangePasswordRequested>(_onChangePassword);
   }
 
   Future<void> _onLoginRequested(
@@ -86,9 +90,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
     result.fold(
       (failure) => emit(AuthFailure(failure.message)),
-      (message) => emit(
-        AuthRegistrationOtpSent(email: event.email, message: message),
-      ),
+      (message) =>
+          emit(AuthRegistrationOtpSent(email: event.email, message: message)),
     );
   }
 
@@ -168,9 +171,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
     result.fold(
       (failure) => emit(AuthFailure(failure.message)),
-      (message) => emit(
-        AuthForgotPasswordOtpSent(email: event.email, message: message),
-      ),
+      (message) =>
+          emit(AuthForgotPasswordOtpSent(email: event.email, message: message)),
     );
   }
 
@@ -215,11 +217,39 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         password: event.password,
       ),
     );
+    result.fold((failure) => emit(AuthFailure(failure.message)), (_) {
+      emit(const AuthPasswordResetSuccess());
+      emit(const AuthUnauthenticated());
+    });
+  }
+
+  Future<void> _onChangePassword(
+    AuthChangePasswordRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    UserEntity? user;
+    if (state is AuthAuthenticated) {
+      user = (state as AuthAuthenticated).user;
+    }
+    emit(const AuthLoading());
+    final result = await changePasswordUseCase(
+      ChangePasswordParams(
+        oldPassword: event.oldPassword,
+        newPassword: event.newPassword,
+      ),
+    );
     result.fold(
-      (failure) => emit(AuthFailure(failure.message)),
+      (failure) {
+        emit(AuthFailure(failure.message));
+        if (user != null) {
+          emit(AuthAuthenticated(user));
+        }
+      },
       (_) {
-        emit(const AuthPasswordResetSuccess());
-        emit(const AuthUnauthenticated());
+        emit(const AuthChangePasswordSuccess());
+        if (user != null) {
+          emit(AuthAuthenticated(user));
+        }
       },
     );
   }

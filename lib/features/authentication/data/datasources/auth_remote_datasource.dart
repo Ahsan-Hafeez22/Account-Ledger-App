@@ -33,9 +33,10 @@ abstract class AuthRemoteDatasource {
   Future<void> logout();
   Future<void> resendOtp({required String email});
   Future<String> forgotPassword({required String email});
-  Future<String> verifyResetOtp({
-    required String email,
-    required String otp,
+  Future<String> verifyResetOtp({required String email, required String otp});
+  Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
   });
   Future<void> resetPassword({
     required String resetToken,
@@ -207,9 +208,7 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
         data: {'email': email, 'otp': otp},
         options: Options(extra: {'skipAuth': true}),
       );
-      return AuthResponseModel.fromJson(
-        response.data as Map<String, dynamic>,
-      );
+      return AuthResponseModel.fromJson(response.data as Map<String, dynamic>);
     } on AppException {
       rethrow;
     } on DioException catch (e) {
@@ -374,6 +373,23 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       rethrow;
     } on DioException catch (e) {
       _throwTypedDio(e, 'resend-otp');
+    }
+  }
+
+  @override
+  Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    try {
+      await dio.post(
+        ApiEndpoints.changePassword,
+        data: {'oldPassword': oldPassword, 'newPassword': newPassword},
+      );
+    } on AppException {
+      rethrow;
+    } on DioException catch (e) {
+      _throwTypedDio(e, 'change-password');
     }
   }
 }
