@@ -68,6 +68,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
       readOnly: widget.readOnly,
       inputFormatters: [
         LengthLimitingTextInputFormatter(widget.pinCodeField ? 4 : 100),
+        if (widget.pinCodeField || widget.keyboardType == TextInputType.number)
+          FilteringTextInputFormatter.digitsOnly,
       ],
       keyboardType: widget.keyboardType,
       maxLines: widget.isPassword ? 1 : widget.maxLines,

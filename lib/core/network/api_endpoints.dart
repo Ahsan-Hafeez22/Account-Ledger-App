@@ -20,4 +20,7 @@ abstract final class ApiEndpoints {
   // Account
   static const String createAccount = '/account/create-account';
   static const String getAccount = '/account/account';
+  static String changeAccountStatus(String status) =>
+      '/account/change-account-status/${Uri.encodeComponent(status)}';
+  static const String changePin = '/account/change-pin';
 }

@@ -10,4 +10,9 @@ abstract class AccountRepository {
     required String accountTitle,
     required String pin,
   });
+  Future<Either<Failure, void>> changePin({
+    required String oldPin,
+    required String newPin,
+  });
+  Future<Either<Failure, void>> changeAccountStatus({required String status});
 }

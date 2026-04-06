@@ -1,3 +1,5 @@
+import 'package:account_ledger/features/account/domain/usecases/change_account_status.dart';
+import 'package:account_ledger/features/account/domain/usecases/change_pin_usecase.dart';
 import 'package:get_it/get_it.dart';
 import 'package:account_ledger/features/account/data/datasources/account_remote_datasource.dart';
 import 'package:account_ledger/features/account/data/repositories/account_repository_impl.dart';
@@ -11,11 +13,15 @@ void initAccountInjection(GetIt sl) {
     () => AccountBloc(
       getAccountsUseCase: sl(),
       createAccountUseCase: sl(),
+      changeAccountStatusUsecase: sl(),
+      changePinUsecase: sl(),
     ),
   );
 
   sl.registerLazySingleton(() => GetAccountsUseCase(sl()));
   sl.registerLazySingleton(() => CreateAccountUseCase(sl()));
+  sl.registerLazySingleton(() => ChangeAccountStatusUsecase(sl()));
+  sl.registerLazySingleton(() => ChangePinUsecase(sl()));
 
   sl.registerLazySingleton<AccountRepository>(
     () => AccountRepositoryImpl(remote: sl()),

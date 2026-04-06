@@ -31,18 +31,22 @@ class AccountLoaded extends AccountState {
   final AccountEntity? account;
   final bool isSubmitting;
   final String? errorMessage;
+  final String? successMessage;
 
   const AccountLoaded({
     this.account,
     this.isSubmitting = false,
     this.errorMessage,
+    this.successMessage,
   });
 
   AccountLoaded copyWith({
     Object? account = _kAccountCopyUnset,
     bool? isSubmitting,
     String? errorMessage,
+    String? successMessage,
     bool clearError = false,
+    bool clearSuccess = false,
   }) {
     return AccountLoaded(
       account: identical(account, _kAccountCopyUnset)
@@ -50,9 +54,11 @@ class AccountLoaded extends AccountState {
           : account as AccountEntity?,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      successMessage:
+          clearSuccess ? null : (successMessage ?? this.successMessage),
     );
   }
 
   @override
-  List<Object?> get props => [account, isSubmitting, errorMessage];
+  List<Object?> get props => [account, isSubmitting, errorMessage, successMessage];
 }

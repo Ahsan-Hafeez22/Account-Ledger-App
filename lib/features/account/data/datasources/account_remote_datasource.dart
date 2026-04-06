@@ -11,6 +11,10 @@ abstract class AccountRemoteDatasource {
     required String accountTitle,
     required String pin,
   });
+
+  Future<void> changePin({required String oldPin, required String newPin});
+
+  Future<void> changeAccountStatus({required String status});
 }
 
 class AccountRemoteDatasourceImpl implements AccountRemoteDatasource {
@@ -134,6 +138,34 @@ class AccountRemoteDatasourceImpl implements AccountRemoteDatasource {
       rethrow;
     } on DioException catch (e) {
       _throwTypedDio(e, 'create-account');
+    }
+  }
+
+  @override
+  Future<void> changeAccountStatus({required String status}) async {
+    try {
+      await dio.patch(ApiEndpoints.changeAccountStatus(status));
+    } on AppException {
+      rethrow;
+    } on DioException catch (e) {
+      _throwTypedDio(e, 'change-account-status');
+    }
+  }
+
+  @override
+  Future<void> changePin({
+    required String oldPin,
+    required String newPin,
+  }) async {
+    try {
+      await dio.post(
+        ApiEndpoints.changePin,
+        data: {'oldPin': oldPin, 'newPin': newPin},
+      );
+    } on AppException {
+      rethrow;
+    } on DioException catch (e) {
+      _throwTypedDio(e, 'change-pin');
     }
   }
 }

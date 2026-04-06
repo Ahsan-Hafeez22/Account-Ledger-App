@@ -40,4 +40,33 @@ class AccountRepositoryImpl implements AccountRepository {
       return Left(NetworkFailure(message: e.message, code: e.code));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> changeAccountStatus({
+    required String status,
+  }) async {
+    try {
+      await _remote.changeAccountStatus(status: status);
+      return Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message, code: e.code));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> changePin({
+    required String oldPin,
+    required String newPin,
+  }) async {
+    try {
+      await _remote.changePin(oldPin: oldPin, newPin: newPin);
+      return Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message, code: e.code));
+    }
+  }
 }
