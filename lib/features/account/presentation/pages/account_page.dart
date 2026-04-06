@@ -125,17 +125,20 @@ class _AccountViewState extends State<_AccountView> {
           listenWhen: (prev, curr) {
             if (curr is AccountLoaded &&
                 curr.errorMessage != null &&
-                curr.errorMessage!.isNotEmpty)
+                curr.errorMessage!.isNotEmpty) {
               return true;
+            }
             if (prev is AccountLoaded &&
                 curr is AccountLoaded &&
                 prev.account == null &&
-                curr.account != null)
+                curr.account != null) {
               return true;
+            }
             if (curr is AccountLoaded &&
                 curr.successMessage != null &&
-                curr.successMessage!.isNotEmpty)
+                curr.successMessage!.isNotEmpty) {
               return true;
+            }
             return false;
           },
           listener: (context, state) {

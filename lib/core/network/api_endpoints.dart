@@ -23,4 +23,11 @@ abstract final class ApiEndpoints {
   static String changeAccountStatus(String status) =>
       '/account/change-account-status/${Uri.encodeComponent(status)}';
   static const String changePin = '/account/change-pin';
+
+  // Transaction (mount should match server, e.g. app.use('/api/transaction', router))
+  static const String createTransaction = '/transaction/create-transaction';
+  static String getTransactionDetail(String transactionId) =>
+      '/transaction/${Uri.encodeComponent(transactionId)}';
+  static const String listTransactions = '/transaction/transactions';
+  static const String checkTransactionStatus = '/transaction/check-status';
 }
