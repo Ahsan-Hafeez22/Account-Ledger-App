@@ -66,7 +66,6 @@ class _SecurityTile extends StatelessWidget {
   final Widget trailing;
   final VoidCallback? onTap;
   final Brightness brightness;
-  final bool isLast;
 
   const _SecurityTile({
     required this.icon,
@@ -77,7 +76,6 @@ class _SecurityTile extends StatelessWidget {
     required this.trailing,
     required this.onTap,
     required this.brightness,
-    this.isLast = false,
   });
 
   @override
@@ -86,10 +84,7 @@ class _SecurityTile extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.vertical(
-          top: const Radius.circular(18),
-          bottom: isLast ? const Radius.circular(18) : Radius.zero,
-        ),
+        borderRadius: BorderRadius.vertical(top: const Radius.circular(18)),
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
           child: Row(
@@ -146,31 +141,6 @@ class _ArrowTrailing extends StatelessWidget {
       color: disabled
           ? AppColors.hintTextColor(brightness)
           : AppColors.secondaryTextColor(brightness),
-    );
-  }
-}
-
-// ─────────────────────────────────────────
-// Coming soon badge (inactive tiles)
-// ─────────────────────────────────────────
-class _ComingSoonBadge extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        'Soon',
-        style: TextStyle(
-          color: AppColors.primary,
-          fontSize: 10.sp,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 0.3,
-        ),
-      ),
     );
   }
 }
