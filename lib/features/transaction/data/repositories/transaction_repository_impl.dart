@@ -253,4 +253,16 @@ class TransactionRepositoryImpl implements TransactionRepository {
       ),
     );
   }
+
+  @override
+  Future<Either<Failure, void>> verifyPin(String pin) async {
+    try {
+      await _remote.verifyPin(pin);
+      return Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message, code: e.code));
+    }
+  }
 }

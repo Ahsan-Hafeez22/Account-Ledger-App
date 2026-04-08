@@ -1,7 +1,6 @@
 import 'package:account_ledger/core/constants/app_fonts.dart';
 import 'package:account_ledger/core/constants/app_colors.dart';
 import 'package:account_ledger/core/constants/app_spacing.dart';
-import 'package:account_ledger/core/dependency_injection/service_locator.dart';
 import 'package:account_ledger/core/extensions/sizedbox_extentions.dart';
 import 'package:account_ledger/core/utils/custom_snack_bar.dart';
 import 'package:account_ledger/features/account/presentation/bloc/account_bloc.dart';
@@ -21,10 +20,9 @@ class AccountPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => sl<AccountBloc>()..add(const AccountLoadRequested()),
-      child: const _AccountView(),
-    );
+    // [AccountBloc] is provided above [BottomNavScaffold] so other tabs
+    // (e.g. Transactions) can refresh account state after server-side freezes.
+    return const _AccountView();
   }
 }
 
@@ -334,6 +332,8 @@ class _AccountDetailView extends StatelessWidget {
               isSubmitting: isSubmitting,
               onChangeStatus: onChangeStatus,
               brightness: brightness,
+              onReload: () =>
+                  context.read<AccountBloc>().add(const AccountLoadRequested()),
             ),
           ),
         ),

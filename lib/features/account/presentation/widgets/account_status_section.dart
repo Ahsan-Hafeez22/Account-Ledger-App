@@ -8,6 +8,7 @@ class AccountStatusSection extends StatelessWidget {
   final String currentStatus;
   final bool isSubmitting;
   final void Function(String) onChangeStatus;
+  final VoidCallback onReload;
   final Brightness brightness;
 
   const AccountStatusSection({
@@ -15,34 +16,106 @@ class AccountStatusSection extends StatelessWidget {
     required this.currentStatus,
     required this.isSubmitting,
     required this.onChangeStatus,
+    required this.onReload,
     required this.brightness,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isFrozen = currentStatus == 'FROZEN';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Account Status', style: context.appFonts.boldBlack16),
         6.0.height,
         Text(
-          'Control how your wallet operates. Changes take effect immediately.',
+          isFrozen
+              ? 'Your account is temporarily frozen. It will unlock automatically after 1 hour.'
+              : 'Control how your wallet operates. Changes take effect immediately.',
           style: context.appFonts.grey14,
         ),
         16.0.height,
-        ...StatusOption.values.map(
-          (opt) => Padding(
-            padding: EdgeInsets.only(bottom: 10.h),
-            child: _StatusOptionCard(
-              option: opt,
-              isSelected: currentStatus == opt.key,
-              isSubmitting: isSubmitting,
-              onTap: () => onChangeStatus(opt.key),
-              brightness: brightness,
-            ),
+
+        if (isFrozen) ...[
+          // ── Frozen state — show frozen card + reload ──
+          _StatusOptionCard(
+            option: StatusOption.frozen,
+            isSelected: true,
+            isSubmitting: isSubmitting,
+            onTap: null, // not tappable
+            brightness: brightness,
           ),
-        ),
+          12.0.height,
+          _ReloadButton(
+            isSubmitting: isSubmitting,
+            onReload: onReload,
+            brightness: brightness,
+          ),
+        ] else ...[
+          // ── Normal state — show ACTIVE and CLOSED only ──
+          ...StatusOption.values
+              .where((opt) => opt != StatusOption.frozen)
+              .map(
+                (opt) => Padding(
+                  padding: EdgeInsets.only(bottom: 10.h),
+                  child: _StatusOptionCard(
+                    option: opt,
+                    isSelected: currentStatus == opt.key,
+                    isSubmitting: isSubmitting,
+                    onTap: () => onChangeStatus(opt.key),
+                    brightness: brightness,
+                  ),
+                ),
+              ),
+        ],
       ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────
+// Reload Button
+// ─────────────────────────────────────────
+class _ReloadButton extends StatelessWidget {
+  final bool isSubmitting;
+  final VoidCallback onReload;
+  final Brightness brightness;
+
+  const _ReloadButton({
+    required this.isSubmitting,
+    required this.onReload,
+    required this.brightness,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: isSubmitting ? null : onReload,
+        icon: isSubmitting
+            ? SizedBox(
+                width: 16.w,
+                height: 16.w,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.primary,
+                ),
+              )
+            : Icon(Icons.refresh_rounded, size: 18.w),
+        label: Text(
+          isSubmitting ? 'Checking status...' : 'Reload account status',
+          style: context.appFonts.boldBlack14,
+        ),
+        style: OutlinedButton.styleFrom(
+          padding: EdgeInsets.symmetric(vertical: 14.h),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          side: BorderSide(color: AppColors.borderColor(brightness)),
+        ),
+      ),
     );
   }
 }
@@ -62,10 +135,11 @@ enum StatusOption {
   frozen(
     key: 'FROZEN',
     label: 'Frozen',
-    description: 'Temporarily suspends all outgoing transactions.',
+    description:
+        'Temporarily suspended due to too many incorrect PIN attempts.',
     icon: Icons.ac_unit_rounded,
     color: Color(0xFF007AFF),
-    riskLabel: 'Reversible',
+    riskLabel: 'Temporary',
   ),
   closed(
     key: 'CLOSED',
@@ -100,7 +174,7 @@ class _StatusOptionCard extends StatelessWidget {
   final StatusOption option;
   final bool isSelected;
   final bool isSubmitting;
-  final VoidCallback onTap;
+  final VoidCallback? onTap; // nullable — frozen card is not tappable
   final Brightness brightness;
 
   const _StatusOptionCard({
@@ -133,7 +207,7 @@ class _StatusOptionCard extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: isSubmitting ? null : onTap,
+          onTap: (isSubmitting || onTap == null) ? null : onTap,
           borderRadius: BorderRadius.circular(16),
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),

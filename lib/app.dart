@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:account_ledger/core/configs/app_config.dart';
 import 'package:account_ledger/core/dependency_injection/service_locator.dart';
+import 'package:account_ledger/core/system/app_system_ui.dart';
 import 'package:account_ledger/core/theme/theme_cubit.dart';
+import 'package:account_ledger/features/account/presentation/bloc/account_bloc.dart';
 import 'package:account_ledger/features/authentication/presentation/bloc/auth_bloc.dart';
+import 'package:account_ledger/features/transaction/presentation/bloc/transaction_bloc.dart';
 import 'package:account_ledger/core/routes/app_router.dart';
 
 class AccountLedger extends StatefulWidget {
@@ -14,21 +18,36 @@ class AccountLedger extends StatefulWidget {
   State<AccountLedger> createState() => _AccountLedgerState();
 }
 
-class _AccountLedgerState extends State<AccountLedger> {
+class _AccountLedgerState extends State<AccountLedger> with WidgetsBindingObserver {
   late final AuthBloc _authBloc;
   late final AppRouter _appRouter;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _authBloc = sl<AuthBloc>();
     _appRouter = AppRouter(authBloc: _authBloc);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      AppSystemUi.applyThemeMode(sl<ThemeCubit>().state);
+    });
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _authBloc.close();
     super.dispose();
+  }
+
+  @override
+  void didChangePlatformBrightness() {
+    if (!mounted) return;
+    if (sl<ThemeCubit>().state == ThemeMode.system) {
+      AppSystemUi.applyThemeMode(ThemeMode.system);
+      setState(() {});
+    }
   }
 
   @override
@@ -42,19 +61,31 @@ class _AccountLedgerState extends State<AccountLedger> {
           providers: [
             BlocProvider.value(value: _authBloc),
             BlocProvider.value(value: sl<ThemeCubit>()),
+            BlocProvider(create: (_) => sl<AccountBloc>()),
+            BlocProvider(create: (_) => sl<TransactionBloc>()),
           ],
-          child: BlocBuilder<ThemeCubit, ThemeMode>(
-            buildWhen: (prev, next) => prev != next,
-            builder: (context, themeMode) {
-              return MaterialApp.router(
-                title: 'Account Ledger',
-                theme: AppTheme.lightTheme,
-                darkTheme: AppTheme.darkTheme,
-                themeMode: themeMode,
-                debugShowCheckedModeBanner: false,
-                routerConfig: _appRouter.router,
-              );
-            },
+          child: BlocListener<ThemeCubit, ThemeMode>(
+            listenWhen: (prev, next) => prev != next,
+            listener: (_, mode) => AppSystemUi.applyThemeMode(mode),
+            child: BlocBuilder<ThemeCubit, ThemeMode>(
+              buildWhen: (prev, next) => prev != next,
+              builder: (context, themeMode) {
+                final overlay = AppSystemUi.overlayStyleForUiBrightness(
+                  AppSystemUi.effectiveBrightness(themeMode),
+                );
+                return AnnotatedRegion<SystemUiOverlayStyle>(
+                  value: overlay,
+                  child: MaterialApp.router(
+                    title: 'Account Ledger',
+                    theme: AppTheme.lightTheme,
+                    darkTheme: AppTheme.darkTheme,
+                    themeMode: themeMode,
+                    debugShowCheckedModeBanner: false,
+                    routerConfig: _appRouter.router,
+                  ),
+                );
+              },
+            ),
           ),
         );
       },

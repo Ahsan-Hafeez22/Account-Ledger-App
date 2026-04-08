@@ -30,4 +30,5 @@ abstract final class ApiEndpoints {
       '/transaction/${Uri.encodeComponent(transactionId)}';
   static const String listTransactions = '/transaction/transactions';
   static const String checkTransactionStatus = '/transaction/check-status';
+  static const String verifyPin = '/transaction/verify-pin';
 }

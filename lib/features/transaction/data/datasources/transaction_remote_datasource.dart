@@ -20,10 +20,7 @@ class CreateTransactionRemoteResult {
   final CreateTransactionRemoteKind kind;
   final TransactionModel? transaction;
 
-  const CreateTransactionRemoteResult({
-    required this.kind,
-    this.transaction,
-  });
+  const CreateTransactionRemoteResult({required this.kind, this.transaction});
 }
 
 abstract class TransactionRemoteDatasource {
@@ -47,6 +44,7 @@ abstract class TransactionRemoteDatasource {
   });
 
   Future<TransactionModel> getTransactionDetail(String transactionId);
+  Future<void> verifyPin(String pin);
 }
 
 class TransactionRemoteDatasourceImpl implements TransactionRemoteDatasource {
@@ -201,6 +199,20 @@ class TransactionRemoteDatasourceImpl implements TransactionRemoteDatasource {
   }
 
   @override
+  Future<void> verifyPin(String pin) async {
+    try {
+      await dio.post(
+        ApiEndpoints.verifyPin,
+        data: {'pin': pin},
+      );
+    } on AppException {
+      rethrow;
+    } on DioException catch (e) {
+      _throwTypedDio(e, 'verify-pin');
+    }
+  }
+
+  @override
   Future<({List<TransactionModel> list, TransactionPaginationModel page})>
   getTransactions({
     int page = 1,
@@ -209,10 +221,7 @@ class TransactionRemoteDatasourceImpl implements TransactionRemoteDatasource {
     DateTime? endDate,
   }) async {
     try {
-      final query = <String, dynamic>{
-        'page': page,
-        'limit': limit,
-      };
+      final query = <String, dynamic>{'page': page, 'limit': limit};
       if (startDate != null) {
         query['startDate'] = startDate.toUtc().toIso8601String();
       }
@@ -246,7 +255,9 @@ class TransactionRemoteDatasourceImpl implements TransactionRemoteDatasource {
           if (item is Map<String, dynamic>) {
             list.add(TransactionModel.fromJson(item));
           } else if (item is Map) {
-            list.add(TransactionModel.fromJson(Map<String, dynamic>.from(item)));
+            list.add(
+              TransactionModel.fromJson(Map<String, dynamic>.from(item)),
+            );
           }
         }
       }

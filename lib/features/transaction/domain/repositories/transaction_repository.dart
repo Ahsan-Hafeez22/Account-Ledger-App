@@ -20,6 +20,8 @@ abstract class TransactionRepository {
     String idempotencyKey,
   );
 
+  Future<Either<Failure, void>> verifyPin(String pin);
+
   /// Persists idempotency payload, creates the transaction, then polls
   /// [check-status] and retries [create-transaction] while status is PENDING.
   Future<Either<Failure, TransactionEntity>> createTransfer({

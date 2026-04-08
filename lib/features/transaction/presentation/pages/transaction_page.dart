@@ -1,28 +1,27 @@
 import 'package:account_ledger/core/constants/app_colors.dart';
 import 'package:account_ledger/core/constants/app_fonts.dart';
-import 'package:account_ledger/core/dependency_injection/service_locator.dart';
 import 'package:account_ledger/core/utils/custom_snack_bar.dart';
 import 'package:account_ledger/core/utils/validators.dart';
+import 'package:account_ledger/features/account/presentation/bloc/account_bloc.dart';
 import 'package:account_ledger/features/transaction/domain/entities/transaction_entity.dart';
 import 'package:account_ledger/features/transaction/domain/entities/transaction_party_entity.dart';
+import 'package:account_ledger/core/routes/route_names.dart';
 import 'package:account_ledger/features/transaction/presentation/bloc/transaction_bloc.dart';
 import 'package:account_ledger/shared/widgets/custom_button.dart';
 import 'package:account_ledger/shared/widgets/custom_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
 
 class TransactionPage extends StatelessWidget {
   const TransactionPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) =>
-          sl<TransactionBloc>()..add(const TransactionLoadRequested()),
-      child: const _TransactionView(),
-    );
+    return const _TransactionView();
   }
 }
 
@@ -38,6 +37,15 @@ class _TransactionViewState extends State<_TransactionView> {
   final _toAccountController = TextEditingController();
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
+  int _selectedLimit = 10;
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<TransactionBloc>().add(
+      TransactionLoadRequested(page: 1, limit: _selectedLimit),
+    );
+  }
 
   @override
   void dispose() {
@@ -47,15 +55,74 @@ class _TransactionViewState extends State<_TransactionView> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _promptPinAndSubmit() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
+    final pin = await _showPinDialog(context);
+    if (!mounted || pin == null) return;
     context.read<TransactionBloc>().add(
-      TransferSubmitted(
+      TransferWithPinSubmitted(
+        pin: pin,
         toAccount: _toAccountController.text,
         amount: _amountController.text,
         description: _descriptionController.text,
       ),
     );
+  }
+
+  Future<String?> _showPinDialog(BuildContext context) async {
+    final controller = PinInputController();
+    var enabled = false;
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: const Text('Enter PIN'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Enter your 4-digit PIN to confirm this transfer.',
+                    style: ctx.appFonts.grey14,
+                  ),
+                  SizedBox(height: 16.h),
+                  MaterialPinField(
+                    length: 4,
+                    pinController: controller,
+                    keyboardType: TextInputType.number,
+                    onChanged: (v) => setState(() => enabled = v.length == 4),
+                    onCompleted: (_) {
+                      if (enabled) Navigator.of(ctx).pop(controller.text);
+                    },
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(null),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: enabled
+                      ? () => Navigator.of(ctx).pop(controller.text)
+                      : null,
+                  child: const Text('Confirm'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+
+    controller.dispose();
+    return result;
   }
 
   String _counterpartyLabel(TransactionEntity t) {
@@ -103,6 +170,15 @@ class _TransactionViewState extends State<_TransactionView> {
             message: state.errorMessage!,
             type: SnackBarType.error,
           );
+          final code = state.errorCode ?? '';
+          final msg = state.errorMessage!.toLowerCase();
+          final looksLikePinFreeze =
+              code.contains('403') ||
+              (msg.contains('frozen') && msg.contains('attempt'));
+          if (looksLikePinFreeze) {
+            // Server may have set account to FROZEN — refresh wallet status for Account tab.
+            context.read<AccountBloc>().add(const AccountLoadRequested());
+          }
           context.read<TransactionBloc>().add(
             const TransactionMessageConsumed(),
           );
@@ -112,6 +188,11 @@ class _TransactionViewState extends State<_TransactionView> {
             message: state.successMessage!,
             type: SnackBarType.success,
           );
+          if (state.successMessage == 'Transfer completed successfully.') {
+            _toAccountController.clear();
+            _amountController.clear();
+            _descriptionController.clear();
+          }
           context.read<TransactionBloc>().add(
             const TransactionMessageConsumed(),
           );
@@ -141,7 +222,10 @@ class _TransactionViewState extends State<_TransactionView> {
                       SizedBox(height: 16.h),
                       FilledButton(
                         onPressed: () => context.read<TransactionBloc>().add(
-                          const TransactionLoadRequested(),
+                          TransactionLoadRequested(
+                            page: 1,
+                            limit: _selectedLimit,
+                          ),
                         ),
                         child: const Text('Retry'),
                       ),
@@ -152,7 +236,7 @@ class _TransactionViewState extends State<_TransactionView> {
               TransactionLoaded() => RefreshIndicator(
                 onRefresh: () async {
                   context.read<TransactionBloc>().add(
-                    const TransactionLoadRequested(),
+                    TransactionLoadRequested(page: 1, limit: _selectedLimit),
                   );
                   await context.read<TransactionBloc>().stream.firstWhere(
                     (s) => s is TransactionLoaded || s is TransactionFailure,
@@ -184,24 +268,11 @@ class _TransactionViewState extends State<_TransactionView> {
                                 ),
                               ),
                               SizedBox(height: 20.h),
-                              // TextFormField(
 
-                              //   controller: _toAccountController,
-                              //   decoration: const InputDecoration(
-                              //     labelText: 'Recipient account number',
-                              //     border: OutlineInputBorder(),
-                              //   ),
-                              //   textInputAction: TextInputAction.next,
-                              //   validator: (v) {
-                              //     if (v == null || v.trim().isEmpty) {
-                              //       return 'Required';
-                              //     }
-                              //     return null;
-                              //   },
-                              // ),
                               CustomTextField(
                                 controller: _toAccountController,
                                 label: 'Recipient account number',
+                                keyboardType: TextInputType.number,
                                 hint: 'Enter recipient account number',
                                 validator: (v) => Validators.required(
                                   v,
@@ -209,27 +280,10 @@ class _TransactionViewState extends State<_TransactionView> {
                                 ),
                               ),
                               SizedBox(height: 12.h),
-                              // TextFormField(
-                              //   controller: _amountController,
-                              //   decoration: const InputDecoration(
-                              //     labelText: 'Amount',
-                              //     border: OutlineInputBorder(),
-                              //   ),
-                              //   keyboardType:
-                              //       const TextInputType.numberWithOptions(
-                              //         decimal: true,
-                              //       ),
-                              //   textInputAction: TextInputAction.next,
-                              //   validator: (v) {
-                              //     final n = double.tryParse(v?.trim() ?? '');
-                              //     if (n == null || n <= 0) {
-                              //       return 'Enter a valid amount';
-                              //     }
-                              //     return null;
-                              //   },
-                              // ),
+
                               CustomTextField(
                                 controller: _amountController,
+                                keyboardType: TextInputType.number,
                                 label: 'Amount',
                                 hint: 'Enter ammount',
                                 validator: (v) =>
@@ -249,7 +303,9 @@ class _TransactionViewState extends State<_TransactionView> {
                                 text: 'Send transfer',
 
                                 isLoading: state.isSending,
-                                onPressed: state.isSending ? () {} : _submit,
+                                onPressed: state.isSending
+                                    ? () {}
+                                    : _promptPinAndSubmit,
                               ),
                               SizedBox(height: 28.h),
                               Row(
@@ -259,13 +315,99 @@ class _TransactionViewState extends State<_TransactionView> {
                                     style: context.appFonts.boldBlack18
                                         .copyWith(color: scheme.onSurface),
                                   ),
-                                  const Spacer(),
-                                  Text(
-                                    '${state.pagination.total} total',
-                                    style: context.appFonts.grey12.copyWith(
-                                      color: secondary,
-                                    ),
-                                  ),
+                                  // const Spacer(),
+                                  // DropdownButtonHideUnderline(
+                                  //   child: DropdownButton<int>(
+                                  //     value: _selectedLimit,
+                                  //     items: const [10, 20, 50, 100]
+                                  //         .map(
+                                  //           (v) => DropdownMenuItem<int>(
+                                  //             value: v,
+                                  //             child: Text('Limit $v'),
+                                  //           ),
+                                  //         )
+                                  //         .toList(),
+                                  //     onChanged: state.isSending
+                                  //         ? null
+                                  //         : (v) {
+                                  //             if (v == null) return;
+                                  //             setState(() => _selectedLimit = v);
+                                  //             context.read<TransactionBloc>().add(
+                                  //               TransactionLoadRequested(
+                                  //                 page: 1,
+                                  //                 limit: v,
+                                  //               ),
+                                  //             );
+                                  //           },
+                                  //   ),
+                                  // ),
+                                  // SizedBox(width: 8.w),
+                                  // Text(
+                                  //   'Page ${state.pagination.page}/${state.pagination.totalPages}',
+                                  //   style: context.appFonts.grey12.copyWith(
+                                  //     color: secondary,
+                                  //   ),
+                                  // ),
+                                  // IconButton(
+                                  //   tooltip: 'Go to page',
+                                  //   onPressed: state.isSending
+                                  //       ? null
+                                  //       : () async {
+                                  //           final controller =
+                                  //               TextEditingController(
+                                  //             text: '${state.pagination.page}',
+                                  //           );
+                                  //           final next = await showDialog<int>(
+                                  //             context: context,
+                                  //             builder: (ctx) => AlertDialog(
+                                  //               title: const Text('Go to page'),
+                                  //               content: TextField(
+                                  //                 controller: controller,
+                                  //                 keyboardType: const TextInputType
+                                  //                     .numberWithOptions(
+                                  //                   signed: false,
+                                  //                   decimal: false,
+                                  //                 ),
+                                  //                 decoration:
+                                  //                     const InputDecoration(
+                                  //                   labelText: 'Page number',
+                                  //                 ),
+                                  //               ),
+                                  //               actions: [
+                                  //                 TextButton(
+                                  //                   onPressed: () =>
+                                  //                       Navigator.of(ctx)
+                                  //                           .pop(null),
+                                  //                   child: const Text('Cancel'),
+                                  //                 ),
+                                  //                 FilledButton(
+                                  //                   onPressed: () {
+                                  //                     final p = int.tryParse(
+                                  //                       controller.text.trim(),
+                                  //                     );
+                                  //                     Navigator.of(ctx).pop(p);
+                                  //                   },
+                                  //                   child: const Text('Go'),
+                                  //                 ),
+                                  //               ],
+                                  //             ),
+                                  //           );
+                                  //           controller.dispose();
+                                  //           if (!context.mounted) return;
+                                  //           if (next == null) return;
+                                  //           final clamped = next.clamp(
+                                  //             1,
+                                  //             state.pagination.totalPages,
+                                  //           );
+                                  //           context.read<TransactionBloc>().add(
+                                  //             TransactionLoadRequested(
+                                  //               page: clamped,
+                                  //               limit: _selectedLimit,
+                                  //             ),
+                                  //           );
+                                  //         },
+                                  // icon: const Icon(Icons.manage_search_rounded),
+                                  // ),
                                 ],
                               ),
                               SizedBox(height: 12.h),
@@ -306,9 +448,14 @@ class _TransactionViewState extends State<_TransactionView> {
                                 alpha: 0.35,
                               ),
                               borderRadius: BorderRadius.circular(16),
-                              child: Padding(
-                                padding: EdgeInsets.all(16.w),
-                                child: Column(
+                              clipBehavior: Clip.antiAlias,
+                              child: InkWell(
+                                onTap: () => context.push(
+                                  RouteEndpoints.transactionDetailPath(t.id),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.all(16.w),
+                                  child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
@@ -345,13 +492,37 @@ class _TransactionViewState extends State<_TransactionView> {
                                       ],
                                     ),
                                     SizedBox(height: 8.h),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            _counterpartyLabel(t),
+                                            style: context.appFonts.boldBlack14
+                                                .copyWith(
+                                                  color: scheme.onSurface,
+                                                ),
+                                          ),
+                                        ),
+                                        Spacer(),
+                                        Expanded(
+                                          child: Text(
+                                            t.fromParty?.accountNumber ?? '',
+                                            style: context.appFonts.black14
+                                                .copyWith(
+                                                  fontStyle: FontStyle.italic,
+                                                  color: scheme.onSurface,
+                                                ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                     Text(
-                                      _counterpartyLabel(t),
-                                      style: context.appFonts.black14.copyWith(
+                                      t.fromParty?.userEmail ?? '',
+                                      style: context.appFonts.grey12.copyWith(
                                         color: scheme.onSurface,
                                       ),
                                     ),
-                                    SizedBox(height: 4.h),
+                                    // SizedBox(height: 4.h),
                                     Text(
                                       _formatWhen(t.createdAt),
                                       style: context.appFonts.grey12.copyWith(
@@ -359,6 +530,7 @@ class _TransactionViewState extends State<_TransactionView> {
                                       ),
                                     ),
                                   ],
+                                ),
                                 ),
                               ),
                             ),

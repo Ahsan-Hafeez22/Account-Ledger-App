@@ -11,5 +11,9 @@ abstract final class RouteEndpoints {
   static const String dashboard = '/dashboard';
   static const String account = '/account';
   static const String transaction = '/transaction';
+  static const String transactionDetail = '/transaction-detail';
   static const String setting = '/setting';
+
+  static String transactionDetailPath(String transactionId) =>
+      '$transactionDetail/${Uri.encodeComponent(transactionId)}';
 }

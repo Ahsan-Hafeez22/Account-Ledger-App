@@ -1,10 +1,12 @@
 import 'package:account_ledger/core/constants/app_colors.dart';
 import 'package:account_ledger/core/constants/app_fonts.dart';
+import 'package:account_ledger/features/account/presentation/bloc/account_bloc.dart';
 import 'package:account_ledger/features/account/presentation/pages/account_page.dart';
 import 'package:account_ledger/features/dashboard/presentation/pages/dashboard_page.dart';
 import 'package:account_ledger/features/setting/presentation/pages/setting_page.dart';
 import 'package:account_ledger/features/transaction/presentation/pages/transaction_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:persistent_bottom_nav_bar/persistent_tab_view.dart';
 
 class BottomNavScaffold extends StatefulWidget {
@@ -30,6 +32,10 @@ class _BottomNavScaffoldState extends State<BottomNavScaffold> {
       AccountPage(),
       SettingPage(),
     ];
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<AccountBloc>().add(const AccountLoadRequested());
+    });
   }
 
   @override

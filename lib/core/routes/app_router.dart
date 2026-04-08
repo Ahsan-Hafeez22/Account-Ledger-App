@@ -9,6 +9,7 @@ import 'package:account_ledger/features/authentication/presentation/pages/securi
 import 'package:account_ledger/features/splash/presentation/pages/splash_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:account_ledger/features/transaction/presentation/pages/transaction_detail_page.dart';
 import 'package:account_ledger/shared/app_bottom_navbar.dart';
 
 class AppRouter {
@@ -50,6 +51,16 @@ class AppRouter {
       GoRoute(
         path: RouteEndpoints.setting,
         builder: (_, __) => const BottomNavScaffold(initialIndex: 3),
+      ),
+      GoRoute(
+        path: '${RouteEndpoints.transactionDetail}/:transactionId',
+        pageBuilder: (context, state) {
+          final id = state.pathParameters['transactionId'] ?? '';
+          return fadeTransitionPage(
+            title: 'Transaction details',
+            child: TransactionDetailPage(transactionId: id),
+          );
+        },
       ),
 
       // GoRoute(

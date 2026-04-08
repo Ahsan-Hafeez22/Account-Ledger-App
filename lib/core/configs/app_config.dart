@@ -1,5 +1,6 @@
 import 'package:account_ledger/core/constants/app_colors.dart';
 import 'package:account_ledger/core/constants/app_fonts.dart';
+import 'package:account_ledger/core/system/app_system_ui.dart';
 import 'package:flutter/material.dart';
 
 abstract final class AppTheme {
@@ -56,6 +57,9 @@ abstract final class AppTheme {
         backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: true,
+        systemOverlayStyle: AppSystemUi.overlayStyleForUiBrightness(
+          Brightness.light,
+        ),
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
         titleTextStyle: AppFonts.themeText(
           fontSize: 18,
@@ -68,7 +72,9 @@ abstract final class AppTheme {
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           minimumSize: const Size(double.infinity, 52),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           textStyle: AppFonts.themeText(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -79,7 +85,10 @@ abstract final class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         labelStyle: AppFonts.themeText(
           fontSize: 14,
           fontWeight: FontWeight.w400,
@@ -119,7 +128,10 @@ abstract final class AppTheme {
         elevation: 8,
         showUnselectedLabels: true,
       ),
-      dividerTheme: const DividerThemeData(color: AppColors.divider, thickness: 1),
+      dividerTheme: const DividerThemeData(
+        color: AppColors.divider,
+        thickness: 1,
+      ),
     );
   }
 
@@ -176,6 +188,9 @@ abstract final class AppTheme {
         backgroundColor: AppColors.darkBackground,
         elevation: 0,
         centerTitle: true,
+        systemOverlayStyle: AppSystemUi.overlayStyleForUiBrightness(
+          Brightness.dark,
+        ),
         iconTheme: const IconThemeData(color: AppColors.darkTextPrimary),
         titleTextStyle: AppFonts.themeText(
           fontSize: 18,
@@ -188,7 +203,9 @@ abstract final class AppTheme {
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           minimumSize: const Size(double.infinity, 52),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           textStyle: AppFonts.themeText(
             fontSize: 16,
             fontWeight: FontWeight.w600,
@@ -199,7 +216,10 @@ abstract final class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.darkSurface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         labelStyle: AppFonts.themeText(
           fontSize: 14,
           fontWeight: FontWeight.w400,
@@ -239,7 +259,10 @@ abstract final class AppTheme {
         elevation: 8,
         showUnselectedLabels: true,
       ),
-      dividerTheme: const DividerThemeData(color: AppColors.darkDivider, thickness: 1),
+      dividerTheme: const DividerThemeData(
+        color: AppColors.darkDivider,
+        thickness: 1,
+      ),
     );
   }
 }

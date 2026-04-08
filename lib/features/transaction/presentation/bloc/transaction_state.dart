@@ -30,6 +30,8 @@ class TransactionLoaded extends TransactionState {
   final bool isLoadingMore;
   final bool isSending;
   final String? errorMessage;
+  /// Populated for server failures (e.g. `verify-pin-failed-403`).
+  final String? errorCode;
   final String? successMessage;
 
   const TransactionLoaded({
@@ -38,6 +40,7 @@ class TransactionLoaded extends TransactionState {
     this.isLoadingMore = false,
     this.isSending = false,
     this.errorMessage,
+    this.errorCode,
     this.successMessage,
   });
 
@@ -47,6 +50,7 @@ class TransactionLoaded extends TransactionState {
     bool? isLoadingMore,
     bool? isSending,
     String? errorMessage,
+    String? errorCode,
     String? successMessage,
     bool clearError = false,
     bool clearSuccess = false,
@@ -57,8 +61,10 @@ class TransactionLoaded extends TransactionState {
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       isSending: isSending ?? this.isSending,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
-      successMessage:
-          clearSuccess ? null : (successMessage ?? this.successMessage),
+      errorCode: clearError ? null : (errorCode ?? this.errorCode),
+      successMessage: clearSuccess
+          ? null
+          : (successMessage ?? this.successMessage),
     );
   }
 
@@ -69,6 +75,7 @@ class TransactionLoaded extends TransactionState {
     isLoadingMore,
     isSending,
     errorMessage,
+    errorCode,
     successMessage,
   ];
 }
