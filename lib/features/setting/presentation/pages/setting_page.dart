@@ -157,6 +157,7 @@ class _SettingPageState extends State<SettingPage> {
                         icon: Icons.notifications,
                         iconBgColor: AppColors.notificationColor,
                         title: 'Notifications',
+                        onTap: () => context.push(RouteEndpoints.notifications),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [

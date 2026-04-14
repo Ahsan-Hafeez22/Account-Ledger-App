@@ -1,10 +1,13 @@
 import 'package:account_ledger/core/configs/env_config.dart';
+import 'package:account_ledger/core/service/notification_service.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:account_ledger/core/theme/theme_cubit.dart';
 import 'package:get_it/get_it.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:account_ledger/core/dependency_injection/account_injection.dart';
 import 'package:account_ledger/core/dependency_injection/auth_injection.dart';
+import 'package:account_ledger/core/dependency_injection/notification_injection.dart';
 import 'package:account_ledger/core/dependency_injection/transaction_injection.dart';
 import 'package:account_ledger/core/network/api_client.dart';
 import 'package:account_ledger/core/network/internet_checker.dart';
@@ -44,11 +47,18 @@ Future<void> initServiceLocator() async {
     ),
   );
   sl.registerLazySingleton<Dio>(() => sl<DioClient>().dio);
+  sl.registerLazySingleton<FlutterLocalNotificationsPlugin>(
+    FlutterLocalNotificationsPlugin.new,
+  );
+  sl.registerLazySingleton<NotificationService>(
+    () => NotificationService(localNotifications: sl()),
+  );
 
   // Features
   initAuthInjection(sl);
   initAccountInjection(sl);
   initTransactionInjection(sl);
+  initNotificationInjection(sl);
   // initDashboardInjection(sl);
   // initAnalyticsInjection(sl);
   // initProfileInjection(sl);

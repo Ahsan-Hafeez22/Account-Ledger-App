@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:account_ledger/core/configs/app_config.dart';
 import 'package:account_ledger/core/dependency_injection/service_locator.dart';
+import 'package:account_ledger/core/service/notification_service.dart';
 import 'package:account_ledger/core/system/app_system_ui.dart';
 import 'package:account_ledger/core/theme/theme_cubit.dart';
 import 'package:account_ledger/features/account/presentation/bloc/account_bloc.dart';
@@ -31,6 +32,8 @@ class _AccountLedgerState extends State<AccountLedger> with WidgetsBindingObserv
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       AppSystemUi.applyThemeMode(sl<ThemeCubit>().state);
+      // Initialize notifications and request permission if disabled.
+      sl<NotificationService>().init(router: _appRouter.router, requestPermission: true);
     });
   }
 

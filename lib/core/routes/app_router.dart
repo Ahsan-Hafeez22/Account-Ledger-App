@@ -6,6 +6,7 @@ import 'package:account_ledger/features/authentication/presentation/pages/otp_ve
 import 'package:account_ledger/features/authentication/presentation/pages/register_page.dart';
 import 'package:account_ledger/features/authentication/presentation/pages/reset_password_page.dart';
 import 'package:account_ledger/features/authentication/presentation/pages/security_page.dart';
+import 'package:account_ledger/features/notification/presentation/pages/notifications_page.dart';
 import 'package:account_ledger/features/splash/presentation/pages/splash_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -51,6 +52,13 @@ class AppRouter {
       GoRoute(
         path: RouteEndpoints.setting,
         builder: (_, __) => const BottomNavScaffold(initialIndex: 3),
+      ),
+      GoRoute(
+        path: RouteEndpoints.notifications,
+        pageBuilder: (context, state) => fadeTransitionPage(
+          title: 'Notifications',
+          child: const NotificationsPage(),
+        ),
       ),
       GoRoute(
         path: '${RouteEndpoints.transactionDetail}/:transactionId',
