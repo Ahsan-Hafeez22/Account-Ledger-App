@@ -19,30 +19,28 @@ abstract final class AppSystemUi {
   }
 
   /// Status + navigation bar icons readable on scaffold:
-  /// light UI → **dark** icons; dark UI → **light** icons.
+  /// light UI → dark icons; dark UI → light icons.
   ///
-  /// Explicit [Brightness] values avoid presets that some Android versions
-  /// apply opposite to Material docs.
+  /// Matches [SystemUiOverlayStyle.light] / [SystemUiOverlayStyle.dark] semantics
+  /// (`statusBarIconBrightness`: light = light-colored icons for dark backgrounds).
   static SystemUiOverlayStyle overlayStyleForUiBrightness(Brightness uiBrightness) {
     final isDark = uiBrightness == Brightness.dark;
     if (isDark) {
       return const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        // Some OEMs invert Flutter’s mapping; `.dark` here yields light icons on dark UI.
-        statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.light,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
         systemNavigationBarColor: AppColors.darkSurface,
-        systemNavigationBarIconBrightness: Brightness.dark,
+        systemNavigationBarIconBrightness: Brightness.light,
         systemNavigationBarContrastEnforced: true,
       );
     }
     return const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      // `.light` here yields dark icons on light UI (readable on white scaffold).
-      statusBarIconBrightness: Brightness.light,
-      statusBarBrightness: Brightness.dark,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
       systemNavigationBarColor: AppColors.surface,
-      systemNavigationBarIconBrightness: Brightness.light,
+      systemNavigationBarIconBrightness: Brightness.dark,
       systemNavigationBarContrastEnforced: true,
     );
   }

@@ -4,7 +4,6 @@ import 'package:account_ledger/core/error/exceptions.dart';
 import 'package:account_ledger/core/network/api_endpoints.dart';
 import 'package:account_ledger/features/authentication/data/models/auth_response_model.dart';
 import 'package:account_ledger/features/authentication/data/models/user_model.dart';
-// import 'package:account_ledger/features/authentication/data/models/user_model.dart';
 
 abstract class AuthRemoteDatasource {
   Future<AuthResponseModel> login({
@@ -14,6 +13,7 @@ abstract class AuthRemoteDatasource {
   Future<AuthResponseModel> authenticateWithSocial(SocialAuthData authData);
   Future<Map<String, String>> refreshSession({required String refreshToken});
   Future<UserModel> getUser();
+  Future<void> registerDevice(Map<String, dynamic> data);
 
   /// OTP email sent; response has [message] only (no user/tokens).
   Future<String> register({
@@ -119,8 +119,11 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       final data = response.data;
 
       final map = Map<String, dynamic>.from(data);
-      final access = (map['accessToken'] ?? map['access_token'] ?? map['token'] ?? '') as String;
-      final rotatedRefresh = (map['refreshToken'] ?? map['refresh_token'] ?? '') as String;
+      final access =
+          (map['accessToken'] ?? map['access_token'] ?? map['token'] ?? '')
+              as String;
+      final rotatedRefresh =
+          (map['refreshToken'] ?? map['refresh_token'] ?? '') as String;
       if (access.isEmpty) {
         throw const ServerException(
           message: 'Missing access token in refresh response',
@@ -129,7 +132,9 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       }
       return {
         'accessToken': access,
-        'refreshToken': rotatedRefresh.isNotEmpty ? rotatedRefresh : refreshToken,
+        'refreshToken': rotatedRefresh.isNotEmpty
+            ? rotatedRefresh
+            : refreshToken,
       };
     } on AppException {
       rethrow;
@@ -393,6 +398,17 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
       rethrow;
     } on DioException catch (e) {
       _throwTypedDio(e, 'change-password');
+    }
+  }
+
+  @override
+  Future<void> registerDevice(Map<String, dynamic> data) async {
+    try {
+      await dio.post(ApiEndpoints.registerDevice, data: data);
+    } on AppException {
+      rethrow;
+    } on DioException catch (e) {
+      _throwTypedDio(e, 'register-device');
     }
   }
 }

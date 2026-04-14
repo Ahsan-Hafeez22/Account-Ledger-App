@@ -1,4 +1,5 @@
 import 'package:account_ledger/core/network/api_endpoints.dart';
+import 'package:account_ledger/core/service/device_info_service.dart';
 import 'package:account_ledger/features/authentication/data/datasources/social_auth_datasource.dart';
 import 'package:account_ledger/features/authentication/domain/usecases/change_password_usecase.dart';
 import 'package:account_ledger/features/authentication/domain/usecases/delete_account_usecase.dart';
@@ -55,6 +56,7 @@ void initAuthInjection(GetIt sl) {
       remoteDatasource: sl(),
       tokenStorageDatasource: sl(),
       socialAuthDataSource: sl(),
+      deviceInfoService: sl(),
     ),
   );
   sl.registerLazySingleton<GoogleSignIn>(
@@ -71,4 +73,7 @@ void initAuthInjection(GetIt sl) {
   sl.registerLazySingleton<SocialAuthDataSource>(
     () => SocialAuthDataSourceImpl(googleSignIn: sl()),
   );
+
+  // Data service
+  sl.registerLazySingleton<DeviceInfoService>(() => DeviceInfoService());
 }

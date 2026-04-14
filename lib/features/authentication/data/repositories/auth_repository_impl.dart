@@ -1,3 +1,4 @@
+import 'package:account_ledger/core/service/device_info_service.dart';
 import 'package:account_ledger/features/authentication/data/datasources/social_auth_datasource.dart';
 import 'package:dartz/dartz.dart';
 import 'package:account_ledger/core/error/exceptions.dart';
@@ -12,14 +13,26 @@ class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDatasource _remoteDatasource;
   final SocialAuthDataSource _socialAuthDataSource;
   final TokenStorageDataSource _tokenStorageDatasource;
+  final DeviceInfoService _deviceInfoService;
 
   const AuthRepositoryImpl({
     required AuthRemoteDatasource remoteDatasource,
     required TokenStorageDataSource tokenStorageDatasource,
     required SocialAuthDataSource socialAuthDataSource,
+    required DeviceInfoService deviceInfoService,
   }) : _remoteDatasource = remoteDatasource,
        _tokenStorageDatasource = tokenStorageDatasource,
-       _socialAuthDataSource = socialAuthDataSource;
+       _socialAuthDataSource = socialAuthDataSource,
+       _deviceInfoService = deviceInfoService;
+
+  /// After access token is stored so the request is authenticated.
+  /// Failures are ignored so login/sign-in still completes.
+  Future<void> _registerDeviceBestEffort() async {
+    try {
+      final deviceData = await _deviceInfoService.getDeviceData();
+      await _remoteDatasource.registerDevice(deviceData);
+    } catch (_) {}
+  }
 
   @override
   Future<Either<Failure, UserEntity>> login({
@@ -45,6 +58,7 @@ class AuthRepositoryImpl implements AuthRepository {
           authResponse.refreshToken!,
         );
       }
+      await _registerDeviceBestEffort();
       return Right(userModel.toEntity());
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
@@ -115,7 +129,11 @@ class AuthRepositoryImpl implements AuthRepository {
         email: email,
         otp: otp,
       );
-      return _persistAuthResponse(authResponse);
+      final result = await _persistAuthResponse(authResponse);
+      if (result.isRight()) {
+        await _registerDeviceBestEffort();
+      }
+      return result;
     } on ServerException catch (e) {
       return Left(ServerFailure(message: e.message, code: e.code));
     } on NetworkException catch (e) {
@@ -231,6 +249,7 @@ class AuthRepositoryImpl implements AuthRepository {
           authResponse.refreshToken!,
         );
       }
+      await _registerDeviceBestEffort();
       return Right(userModel.toEntity());
     } on CancelledException catch (e) {
       return Left(CancelledFailure(message: e.message, code: e.code));

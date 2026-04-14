@@ -16,6 +16,7 @@ abstract final class ApiEndpoints {
   static const String verifyResetOtp = '/auth/verify-reset-otp';
   static const String resetPassword = '/auth/reset-password';
   static const String changePassword = '/auth/change-password';
+  static const String registerDevice = '/auth/register-device';
 
   // Account
   static const String createAccount = '/account/create-account';
