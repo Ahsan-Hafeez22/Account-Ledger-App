@@ -43,3 +43,12 @@ final class NotificationsDeleteManyRequested extends NotificationEvent {
   List<Object?> get props => [ids];
 }
 
+/// Used when an FCM push is received while app is running.
+final class NotificationReceived extends NotificationEvent {
+  final AppNotificationEntity notification;
+  const NotificationReceived(this.notification);
+
+  @override
+  List<Object?> get props => [notification];
+}
+

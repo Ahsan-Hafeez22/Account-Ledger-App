@@ -51,6 +51,17 @@ class _AccountLedgerState extends State<AccountLedger> with WidgetsBindingObserv
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // When returning to foreground, reconcile once (covers background/offline cases)
+    // without any periodic polling.
+    if (state == AppLifecycleState.resumed) {
+      try {
+        sl<NotificationBloc>().add(const NotificationsRefreshRequested());
+      } catch (_) {}
+    }
+  }
+
+  @override
   void didChangePlatformBrightness() {
     if (!mounted) return;
     if (sl<ThemeCubit>().state == ThemeMode.system) {
@@ -72,7 +83,7 @@ class _AccountLedgerState extends State<AccountLedger> with WidgetsBindingObserv
             BlocProvider.value(value: sl<ThemeCubit>()),
             BlocProvider(create: (_) => sl<AccountBloc>()),
             BlocProvider(create: (_) => sl<TransactionBloc>()),
-            BlocProvider(create: (_) => sl<NotificationBloc>()),
+            BlocProvider.value(value: sl<NotificationBloc>()),
           ],
           child: BlocListener<ThemeCubit, ThemeMode>(
             listenWhen: (prev, next) => prev != next,

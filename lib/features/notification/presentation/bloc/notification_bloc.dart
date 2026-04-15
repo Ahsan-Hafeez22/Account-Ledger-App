@@ -35,6 +35,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     on<NotificationsMarkAllReadRequested>(_onMarkAllRead);
     on<NotificationDeleteOneRequested>(_onDeleteOne);
     on<NotificationsDeleteManyRequested>(_onDeleteMany);
+    on<NotificationReceived>(_onReceived);
   }
 
   Future<void> _onLoad(
@@ -143,6 +144,21 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     } catch (_) {
       emit(state.copyWith(items: before, errorMessage: 'Delete failed'));
     }
+  }
+
+  void _onReceived(
+    NotificationReceived event,
+    Emitter<NotificationState> emit,
+  ) {
+    final incoming = event.notification;
+    if (incoming.id.isEmpty) return;
+
+    // Prepend and dedupe by id.
+    final next = <AppNotificationEntity>[
+      incoming,
+      ...state.items.where((e) => e.id != incoming.id),
+    ];
+    emit(state.copyWith(items: next, clearError: true));
   }
 }
 

@@ -29,7 +29,7 @@ void initNotificationInjection(GetIt sl) {
   sl.registerLazySingleton(() => DeleteManyNotificationsUseCase(sl()));
 
   // Bloc
-  sl.registerFactory(
+  sl.registerLazySingleton<NotificationBloc>(
     () => NotificationBloc(
       getNotifications: sl(),
       markRead: sl(),

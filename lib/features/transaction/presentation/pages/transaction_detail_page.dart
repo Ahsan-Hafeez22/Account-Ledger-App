@@ -185,18 +185,17 @@ class _AmountHeroCard extends StatelessWidget {
     required this.isDark,
     required this.formatDateShort,
   });
+  /*
+  final cardBg = AppColors.cardColor(brightness);
+    final border = AppColors.borderColor(brightness);
 
+*/
   Color get _amountColor =>
       isDebit ? const Color(0xFFFF3B30) : const Color(0xFF34C759);
 
-  Color get _cardGradientStart => isDebit
-      ? (isDark ? const Color(0xFF2A1215) : const Color(0xFFFFF1F0))
-      : (isDark ? const Color(0xFF0D2318) : const Color(0xFFF0FFF4));
+  Color get _cardGradientStart => AppColors.cardColor(brightness);
 
-  Color get _cardGradientEnd => isDebit
-      ? (isDark ? const Color(0xFF1C0A0A) : const Color(0xFFFFF8F7))
-      : (isDark ? const Color(0xFF081A10) : const Color(0xFFF7FFFA));
-
+  Color get _cardGradientEnd => AppColors.cardColor(brightness);
   @override
   Widget build(BuildContext context) {
     final t = transaction;

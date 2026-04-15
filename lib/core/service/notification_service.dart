@@ -1,7 +1,10 @@
 import 'dart:convert';
 
 import 'package:account_ledger/core/routes/route_names.dart';
+import 'package:account_ledger/core/dependency_injection/service_locator.dart';
+import 'package:account_ledger/features/notification/data/models/app_notification_model.dart';
 import 'package:account_ledger/features/notification/domain/entities/app_notification_entity.dart';
+import 'package:account_ledger/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:account_ledger/features/notification/presentation/notification_router.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -124,12 +127,50 @@ class NotificationService {
       final data = _normalizedData(message.data);
       final title = message.notification?.title ?? (data['title'] as String?);
       final body = message.notification?.body ?? (data['body'] as String?);
+
+      // Push-driven UI update (no polling): prepend notification to bloc state.
+      _dispatchIncomingToBloc(data: data, title: title, body: body);
+
       await showLocalNotification(
         title: title ?? 'Account Ledger',
         body: body ?? '',
         data: data,
       );
     });
+  }
+
+  void _dispatchIncomingToBloc({
+    required Map<String, dynamic> data,
+    String? title,
+    String? body,
+  }) {
+    try {
+      final merged = Map<String, dynamic>.from(data);
+      if (title != null && title.isNotEmpty) merged.putIfAbsent('title', () => title);
+      if (body != null && body.isNotEmpty) merged.putIfAbsent('body', () => body);
+      final model = AppNotificationModel.fromJson(merged);
+
+      // If backend doesn't include `_id` in the push payload, still update UI
+      // immediately using a generated id. A later refresh will reconcile with DB.
+      final id = model.id.isNotEmpty
+          ? model.id
+          : 'push_${DateTime.now().millisecondsSinceEpoch}';
+
+      final entity = AppNotificationEntity(
+        id: id,
+        type: model.type,
+        title: model.title,
+        body: model.body,
+        imageUrl: model.imageUrl,
+        data: model.data,
+        readAt: model.readAt,
+        createdAt: model.createdAt,
+      );
+
+      sl<NotificationBloc>().add(NotificationReceived(entity));
+    } catch (e) {
+      debugPrint('dispatchIncomingToBloc failed: $e');
+    }
   }
 
   Future<void> showLocalNotification({
@@ -181,16 +222,19 @@ class NotificationService {
       createdAt: DateTime.now(),
     );
 
-    if (!NotificationRouter.canNavigate(notification)) {
-      router.go(RouteEndpoints.dashboard);
-      return;
-    }
     final ctx = router.routerDelegate.navigatorKey.currentContext;
     if (ctx == null) {
       // Router isn't attached yet; safest fallback.
       router.go(RouteEndpoints.dashboard);
       return;
     }
+
+    // If it's an announcement (non-navigable), open the Notifications list.
+    if (!NotificationRouter.canNavigate(notification)) {
+      router.push(RouteEndpoints.notifications);
+      return;
+    }
+
     NotificationRouter.navigate(ctx, notification);
   }
 
