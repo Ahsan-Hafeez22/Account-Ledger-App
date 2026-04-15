@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:account_ledger/core/routes/route_names.dart';
-import 'package:account_ledger/features/notification/data/models/app_notification_model.dart';
+import 'package:account_ledger/features/notification/domain/entities/app_notification_entity.dart';
 import 'package:account_ledger/features/notification/presentation/notification_router.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -31,11 +31,23 @@ class NotificationService {
     if (_initialized) return;
     _initialized = true;
 
-    await _initLocalNotifications();
-    if (requestPermission) {
-      await ensurePermissions(promptIfNotGranted: true);
+    try {
+      await _initLocalNotifications();
+    } catch (e) {
+      debugPrint('NotificationService initLocal failed: $e');
     }
-    await _wireFcmHandlers();
+    if (requestPermission) {
+      try {
+        await ensurePermissions(promptIfNotGranted: true);
+      } catch (e) {
+        debugPrint('NotificationService permission failed: $e');
+      }
+    }
+    try {
+      await _wireFcmHandlers();
+    } catch (e) {
+      debugPrint('NotificationService wireFcm failed: $e');
+    }
   }
 
   Future<bool> ensurePermissions({required bool promptIfNotGranted}) async {
@@ -50,11 +62,11 @@ class NotificationService {
       final androidImpl =
           _local.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
       if (androidImpl != null) {
-        if (promptIfNotGranted) {
-          final allowed = await androidImpl.requestNotificationsPermission();
-          return allowed ?? false;
-        }
-        return false;
+        final enabled = await androidImpl.areNotificationsEnabled() ?? true;
+        if (enabled) return true;
+        if (!promptIfNotGranted) return false;
+        final allowed = await androidImpl.requestNotificationsPermission();
+        return allowed ?? false;
       }
 
       if (!promptIfNotGranted) return false;
@@ -77,11 +89,6 @@ class NotificationService {
     await _local.initialize(
       const InitializationSettings(android: androidInit, iOS: darwinInit),
       onDidReceiveNotificationResponse: (response) {
-        final payload = response.payload;
-        if (payload == null || payload.isEmpty) return;
-        _handleTapFromPayload(payload);
-      },
-      onDidReceiveBackgroundNotificationResponse: (response) {
         final payload = response.payload;
         if (payload == null || payload.isEmpty) return;
         _handleTapFromPayload(payload);
@@ -163,7 +170,7 @@ class NotificationService {
     if (router == null) return;
 
     // Use the centralized routing logic.
-    final model = AppNotificationModel(
+    final notification = AppNotificationEntity(
       id: (data['_id'] ?? data['id'] ?? '').toString(),
       type: (data['type'] ?? '').toString(),
       title: (data['title'] ?? '').toString(),
@@ -174,11 +181,17 @@ class NotificationService {
       createdAt: DateTime.now(),
     );
 
-    if (!NotificationRouter.canNavigate(model)) {
+    if (!NotificationRouter.canNavigate(notification)) {
       router.go(RouteEndpoints.dashboard);
       return;
     }
-    NotificationRouter.navigate(router.routerDelegate.navigatorKey.currentContext!, model);
+    final ctx = router.routerDelegate.navigatorKey.currentContext;
+    if (ctx == null) {
+      // Router isn't attached yet; safest fallback.
+      router.go(RouteEndpoints.dashboard);
+      return;
+    }
+    NotificationRouter.navigate(ctx, notification);
   }
 
   Map<String, dynamic> _normalizedData(Map<String, dynamic> raw) {

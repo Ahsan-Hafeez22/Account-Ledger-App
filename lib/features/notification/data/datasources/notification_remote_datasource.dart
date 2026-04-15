@@ -7,6 +7,7 @@ abstract class NotificationRemoteDatasource {
   Future<List<AppNotificationModel>> getNotifications();
   Future<void> markRead(String notificationId);
   Future<void> markAllRead();
+  Future<int> getUnreadCount();
   Future<void> deleteOne(String notificationId);
   Future<void> deleteMany(List<String> ids);
 }
@@ -38,13 +39,19 @@ class NotificationRemoteDatasourceImpl implements NotificationRemoteDatasource {
       // - [ ... ]
       dynamic list = data;
       if (data is Map<String, dynamic>) {
-        list = data['notifications'] ?? data['data'] ?? data['items'] ?? data['results'];
+        list =
+            data['notifications'] ??
+            data['data'] ??
+            data['items'] ??
+            data['results'];
       }
       if (list is! List) return const [];
 
       return list
           .whereType<Map>()
-          .map((e) => AppNotificationModel.fromJson(Map<String, dynamic>.from(e)))
+          .map(
+            (e) => AppNotificationModel.fromJson(Map<String, dynamic>.from(e)),
+          )
           .toList();
     } on AppException {
       rethrow;
@@ -99,5 +106,17 @@ class NotificationRemoteDatasourceImpl implements NotificationRemoteDatasource {
       _throwTypedDio(e, 'delete-many-notifications');
     }
   }
-}
 
+  @override
+  Future<int> getUnreadCount() async {
+    try {
+      final response = await dio.get(ApiEndpoints.unreadNotificationCount);
+      final data = response.data;
+      return data['count'];
+    } on AppException {
+      rethrow;
+    } on DioException catch (e) {
+      _throwTypedDio(e, 'delete-many-notifications');
+    }
+  }
+}

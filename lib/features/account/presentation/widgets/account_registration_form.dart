@@ -46,7 +46,7 @@ class AccountRegistrationForm extends StatelessWidget {
             CustomTextField(
               controller: titleController,
               label: 'Account title',
-              hint: 'e.g. Ahsan Wallet',
+              hint: 'e.g. My Wallet',
               validator: (v) => Validators.required(v, 'Account title'),
             ),
             AppSpacing.xl.height,

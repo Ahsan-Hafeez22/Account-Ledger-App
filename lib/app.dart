@@ -9,6 +9,7 @@ import 'package:account_ledger/core/system/app_system_ui.dart';
 import 'package:account_ledger/core/theme/theme_cubit.dart';
 import 'package:account_ledger/features/account/presentation/bloc/account_bloc.dart';
 import 'package:account_ledger/features/authentication/presentation/bloc/auth_bloc.dart';
+import 'package:account_ledger/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:account_ledger/features/transaction/presentation/bloc/transaction_bloc.dart';
 import 'package:account_ledger/core/routes/app_router.dart';
 
@@ -29,11 +30,16 @@ class _AccountLedgerState extends State<AccountLedger> with WidgetsBindingObserv
     WidgetsBinding.instance.addObserver(this);
     _authBloc = sl<AuthBloc>();
     _appRouter = AppRouter(authBloc: _authBloc);
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       AppSystemUi.applyThemeMode(sl<ThemeCubit>().state);
       // Initialize notifications and request permission if disabled.
-      sl<NotificationService>().init(router: _appRouter.router, requestPermission: true);
+      try {
+        await sl<NotificationService>().init(
+          router: _appRouter.router,
+          requestPermission: true,
+        );
+      } catch (_) {}
     });
   }
 
@@ -66,6 +72,7 @@ class _AccountLedgerState extends State<AccountLedger> with WidgetsBindingObserv
             BlocProvider.value(value: sl<ThemeCubit>()),
             BlocProvider(create: (_) => sl<AccountBloc>()),
             BlocProvider(create: (_) => sl<TransactionBloc>()),
+            BlocProvider(create: (_) => sl<NotificationBloc>()),
           ],
           child: BlocListener<ThemeCubit, ThemeMode>(
             listenWhen: (prev, next) => prev != next,

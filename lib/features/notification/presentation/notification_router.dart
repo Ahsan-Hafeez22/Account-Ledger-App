@@ -1,12 +1,12 @@
 // lib/features/notification/presentation/notification_router.dart
 
 import 'package:account_ledger/core/routes/route_names.dart';
-import 'package:account_ledger/features/notification/data/models/app_notification_model.dart';
+import 'package:account_ledger/features/notification/domain/entities/app_notification_entity.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/widgets.dart';
 
 abstract final class NotificationRouter {
-  static bool canNavigate(AppNotificationModel notification) {
+  static bool canNavigate(AppNotificationEntity notification) {
     final screen = notification.data['screen']?.toString();
     switch (screen) {
       case 'TransactionDetailScreen':
@@ -19,7 +19,7 @@ abstract final class NotificationRouter {
 
   static void navigate(
     BuildContext context,
-    AppNotificationModel notification,
+    AppNotificationEntity notification,
   ) {
     final data = notification.data;
     final screen = data['screen']?.toString();

@@ -62,6 +62,25 @@ class DeviceInfoService {
     return data;
   }
 
+  Future<String> getDeviceIdForLogout() async {
+    var deviceId = '';
+
+    try {
+      if (Platform.isAndroid) {
+        final info = await _deviceInfo.androidInfo;
+        deviceId = info.id;
+      } else if (Platform.isIOS) {
+        final info = await _deviceInfo.iosInfo;
+        deviceId = info.identifierForVendor ?? '';
+      } else {}
+    } catch (_) {
+      deviceId = '';
+    }
+
+    final resolvedId = await _ensureNonEmptyDeviceId(deviceId);
+    return resolvedId;
+  }
+
   Future<String> _ensureNonEmptyDeviceId(String fromPlatform) async {
     if (fromPlatform.isNotEmpty) return fromPlatform;
     final prefs = await SharedPreferences.getInstance();

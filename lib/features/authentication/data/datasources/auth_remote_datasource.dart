@@ -30,7 +30,7 @@ abstract class AuthRemoteDatasource {
     required String otp,
   });
 
-  Future<void> logout();
+  Future<void> logout({required String deviceId});
   Future<void> resendOtp({required String email});
   Future<String> forgotPassword({required String email});
   Future<String> verifyResetOtp({required String email, required String otp});
@@ -250,9 +250,9 @@ class AuthRemoteDatasourceImpl implements AuthRemoteDatasource {
   }
 
   @override
-  Future<void> logout() async {
+  Future<void> logout({required String deviceId}) async {
     try {
-      await dio.post(ApiEndpoints.logout);
+      await dio.post(ApiEndpoints.logout, data: {'deviceId': deviceId});
     } on AppException {
       rethrow;
     } on DioException catch (e) {

@@ -271,7 +271,8 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, void>> logout() async {
     try {
-      await _remoteDatasource.logout();
+      final deviceId = await _deviceInfoService.getDeviceIdForLogout();
+      await _remoteDatasource.logout(deviceId: deviceId);
       await _tokenStorageDatasource.clearTokens();
       return const Right(null);
     } on ServerException catch (e) {

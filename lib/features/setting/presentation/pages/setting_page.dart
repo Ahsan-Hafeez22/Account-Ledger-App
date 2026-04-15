@@ -2,11 +2,13 @@ import 'dart:developer';
 
 import 'package:account_ledger/core/constants/app_colors.dart';
 import 'package:account_ledger/core/constants/app_fonts.dart';
+import 'package:account_ledger/core/dependency_injection/service_locator.dart';
 import 'package:account_ledger/core/extensions/sizedbox_extentions.dart';
 import 'package:account_ledger/core/routes/route_names.dart';
 import 'package:account_ledger/core/theme/theme_cubit.dart';
 import 'package:account_ledger/core/utils/custom_snack_bar.dart';
 import 'package:account_ledger/features/authentication/presentation/bloc/auth_bloc.dart';
+import 'package:account_ledger/features/notification/data/datasources/notification_remote_datasource.dart';
 import 'package:account_ledger/features/setting/presentation/widgets/profile_header.dart';
 import 'package:account_ledger/features/setting/presentation/widgets/setting_tile.dart';
 import 'package:account_ledger/shared/components/alert_box_widget.dart';
@@ -24,12 +26,24 @@ class SettingPage extends StatefulWidget {
 }
 
 class _SettingPageState extends State<SettingPage> {
+  late final NotificationRemoteDatasource _remote;
   static const Color _deleteIconBg = Color(0xFFE53935);
+  int notificationCount = 0;
 
   /// True only while the full-screen loading dialog from delete / logout is shown.
   /// Prevents [Navigator.pop] from popping a pushed route (e.g. change-password) when
   /// another feature emits [AuthLoading] → [AuthFailure] on the same [AuthBloc].
   bool _rootLoadingDialogOpen = false;
+  @override
+  void initState() {
+    _remote = sl<NotificationRemoteDatasource>();
+    _load();
+    super.initState();
+  }
+
+  void _load() async {
+    notificationCount = await _remote.getUnreadCount();
+  }
 
   Future<void> _confirmDelete(BuildContext context) async {
     bool go = await AppAlertDialog.show(
@@ -156,7 +170,7 @@ class _SettingPageState extends State<SettingPage> {
                       SettingsTile(
                         icon: Icons.notifications,
                         iconBgColor: AppColors.notificationColor,
-                        title: 'Notifications',
+                        title: '$notificationCount Notifications',
                         onTap: () => context.push(RouteEndpoints.notifications),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,

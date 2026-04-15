@@ -13,7 +13,7 @@ class EnvConfig {
 
   static const EnvConfig development = EnvConfig(
     environment: Environment.development,
-    baseUrl: 'http://19.1.1.21:3000/api',
+    baseUrl: 'http://19.1.1.116:3000/api',
 
     // baseUrl: 'https://backend-ledger-0iw8.onrender.com/api',
     // baseUrl: 'http://192.168.100.84:3000/api',
@@ -23,7 +23,7 @@ class EnvConfig {
   static const EnvConfig staging = EnvConfig(
     environment: Environment.staging,
 
-    baseUrl: 'http://19.1.1.21:3000/api',
+    baseUrl: 'http://19.1.1.116:3000/api',
     // baseUrl: 'https://backend-ledger-0iw8.onrender.com/api',
     // baseUrl: 'http://192.168.100.84:3000/api',
     apiKey: 'staging-api-key',

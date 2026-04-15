@@ -1,3 +1,5 @@
+import 'package:account_ledger/features/notification/domain/entities/app_notification_entity.dart';
+
 class AppNotificationModel {
   final String id;
   final String type;
@@ -20,6 +22,19 @@ class AppNotificationModel {
   });
 
   bool get isRead => readAt != null;
+
+  AppNotificationEntity toEntity() {
+    return AppNotificationEntity(
+      id: id,
+      type: type,
+      title: title,
+      body: body,
+      imageUrl: imageUrl,
+      data: data,
+      readAt: readAt,
+      createdAt: createdAt,
+    );
+  }
 
   AppNotificationModel copyWith({
     DateTime? readAt,

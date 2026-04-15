@@ -22,11 +22,14 @@ abstract final class ApiEndpoints {
   static const String getNotification = '/notifications/get-notification';
   static String markNotificationRead(String notificationId) =>
       '/notifications/${Uri.encodeComponent(notificationId)}/read';
-  static const String markAllNotificationsRead = '/notifications/mark-all-read';
-  static const String deleteManyNotifications = '/notifications/delete-many-notification';
+  static const String markAllNotificationsRead =
+      '/notifications/mark-all-as-read';
+  static const String unreadNotificationCount =
+      '/notifications/unread-notifications';
+  static const String deleteManyNotifications =
+      '/notifications/delete-many-notification';
   static String deleteNotification(String notificationId) =>
       '/notifications/${Uri.encodeComponent(notificationId)}';
-
 
   // Account
   static const String createAccount = '/account/create-account';
