@@ -37,7 +37,7 @@ class _TransactionViewState extends State<_TransactionView> {
   final _toAccountController = TextEditingController();
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
-  int _selectedLimit = 10;
+  final int _selectedLimit = 3;
 
   @override
   void initState() {
@@ -315,99 +315,17 @@ class _TransactionViewState extends State<_TransactionView> {
                                     style: context.appFonts.boldBlack18
                                         .copyWith(color: scheme.onSurface),
                                   ),
-                                  // const Spacer(),
-                                  // DropdownButtonHideUnderline(
-                                  //   child: DropdownButton<int>(
-                                  //     value: _selectedLimit,
-                                  //     items: const [10, 20, 50, 100]
-                                  //         .map(
-                                  //           (v) => DropdownMenuItem<int>(
-                                  //             value: v,
-                                  //             child: Text('Limit $v'),
-                                  //           ),
-                                  //         )
-                                  //         .toList(),
-                                  //     onChanged: state.isSending
-                                  //         ? null
-                                  //         : (v) {
-                                  //             if (v == null) return;
-                                  //             setState(() => _selectedLimit = v);
-                                  //             context.read<TransactionBloc>().add(
-                                  //               TransactionLoadRequested(
-                                  //                 page: 1,
-                                  //                 limit: v,
-                                  //               ),
-                                  //             );
-                                  //           },
-                                  //   ),
-                                  // ),
-                                  // SizedBox(width: 8.w),
-                                  // Text(
-                                  //   'Page ${state.pagination.page}/${state.pagination.totalPages}',
-                                  //   style: context.appFonts.grey12.copyWith(
-                                  //     color: secondary,
-                                  //   ),
-                                  // ),
-                                  // IconButton(
-                                  //   tooltip: 'Go to page',
-                                  //   onPressed: state.isSending
-                                  //       ? null
-                                  //       : () async {
-                                  //           final controller =
-                                  //               TextEditingController(
-                                  //             text: '${state.pagination.page}',
-                                  //           );
-                                  //           final next = await showDialog<int>(
-                                  //             context: context,
-                                  //             builder: (ctx) => AlertDialog(
-                                  //               title: const Text('Go to page'),
-                                  //               content: TextField(
-                                  //                 controller: controller,
-                                  //                 keyboardType: const TextInputType
-                                  //                     .numberWithOptions(
-                                  //                   signed: false,
-                                  //                   decimal: false,
-                                  //                 ),
-                                  //                 decoration:
-                                  //                     const InputDecoration(
-                                  //                   labelText: 'Page number',
-                                  //                 ),
-                                  //               ),
-                                  //               actions: [
-                                  //                 TextButton(
-                                  //                   onPressed: () =>
-                                  //                       Navigator.of(ctx)
-                                  //                           .pop(null),
-                                  //                   child: const Text('Cancel'),
-                                  //                 ),
-                                  //                 FilledButton(
-                                  //                   onPressed: () {
-                                  //                     final p = int.tryParse(
-                                  //                       controller.text.trim(),
-                                  //                     );
-                                  //                     Navigator.of(ctx).pop(p);
-                                  //                   },
-                                  //                   child: const Text('Go'),
-                                  //                 ),
-                                  //               ],
-                                  //             ),
-                                  //           );
-                                  //           controller.dispose();
-                                  //           if (!context.mounted) return;
-                                  //           if (next == null) return;
-                                  //           final clamped = next.clamp(
-                                  //             1,
-                                  //             state.pagination.totalPages,
-                                  //           );
-                                  //           context.read<TransactionBloc>().add(
-                                  //             TransactionLoadRequested(
-                                  //               page: clamped,
-                                  //               limit: _selectedLimit,
-                                  //             ),
-                                  //           );
-                                  //         },
-                                  // icon: const Icon(Icons.manage_search_rounded),
-                                  // ),
+                                  const Spacer(),
+                                  TextButton(
+                                    onPressed: () => context.push(
+                                      RouteEndpoints.transactionHistory,
+                                    ),
+                                    child: Text(
+                                      'View All',
+                                      style: context.appFonts.boldBlack14
+                                          .copyWith(color: scheme.primary),
+                                    ),
+                                  ),
                                 ],
                               ),
                               SizedBox(height: 12.h),
@@ -456,111 +374,113 @@ class _TransactionViewState extends State<_TransactionView> {
                                 child: Padding(
                                   padding: EdgeInsets.all(16.w),
                                   child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Container(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 10.w,
-                                            vertical: 4.h,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: chipColor,
-                                            borderRadius: BorderRadius.circular(
-                                              20,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 10.w,
+                                              vertical: 4.h,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: chipColor,
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                            ),
+                                            child: Text(
+                                              isDebit ? 'Sent' : 'Received',
+                                              style: context
+                                                  .appFonts
+                                                  .mediumBlack12
+                                                  .copyWith(color: chipFg),
                                             ),
                                           ),
-                                          child: Text(
-                                            isDebit ? 'Sent' : 'Received',
-                                            style: context
-                                                .appFonts
-                                                .mediumBlack12
-                                                .copyWith(color: chipFg),
-                                          ),
-                                        ),
-                                        const Spacer(),
-                                        Text(
-                                          '${isDebit ? '-' : '+'}${t.amount.toStringAsFixed(2)}',
-                                          style: context.appFonts.boldBlack16
-                                              .copyWith(
-                                                color: isDebit
-                                                    ? scheme.error
-                                                    : scheme.primary,
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(height: 8.h),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            _counterpartyLabel(t),
-                                            style: context.appFonts.boldBlack14
+                                          const Spacer(),
+                                          Text(
+                                            '${isDebit ? '-' : '+'}${t.amount.toStringAsFixed(2)}',
+                                            style: context.appFonts.boldBlack16
                                                 .copyWith(
-                                                  color: scheme.onSurface,
+                                                  color: isDebit
+                                                      ? scheme.error
+                                                      : scheme.primary,
                                                 ),
                                           ),
-                                        ),
-                                        Spacer(),
-                                        Expanded(
-                                          child: Text(
-                                            t.fromParty?.accountNumber ?? '',
-                                            style: context.appFonts.black14
-                                                .copyWith(
-                                                  fontStyle: FontStyle.italic,
-                                                  color: scheme.onSurface,
-                                                ),
+                                        ],
+                                      ),
+                                      SizedBox(height: 8.h),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              _counterpartyLabel(t),
+                                              style: context
+                                                  .appFonts
+                                                  .boldBlack14
+                                                  .copyWith(
+                                                    color: scheme.onSurface,
+                                                  ),
+                                            ),
                                           ),
+                                          Spacer(),
+                                          Expanded(
+                                            child: Text(
+                                              t.fromParty?.accountNumber ?? '',
+                                              style: context.appFonts.black14
+                                                  .copyWith(
+                                                    fontStyle: FontStyle.italic,
+                                                    color: scheme.onSurface,
+                                                  ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Text(
+                                        t.fromParty?.userEmail ?? '',
+                                        style: context.appFonts.grey12.copyWith(
+                                          color: scheme.onSurface,
                                         ),
-                                      ],
-                                    ),
-                                    Text(
-                                      t.fromParty?.userEmail ?? '',
-                                      style: context.appFonts.grey12.copyWith(
-                                        color: scheme.onSurface,
                                       ),
-                                    ),
-                                    // SizedBox(height: 4.h),
-                                    Text(
-                                      _formatWhen(t.createdAt),
-                                      style: context.appFonts.grey12.copyWith(
-                                        color: secondary,
+                                      // SizedBox(height: 4.h),
+                                      Text(
+                                        _formatWhen(t.createdAt),
+                                        style: context.appFonts.grey12.copyWith(
+                                          color: secondary,
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
                           );
                         },
                       ),
-                    if (state.pagination.hasNextPage)
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 32.h),
-                          child: OutlinedButton(
-                            onPressed: state.isLoadingMore
-                                ? null
-                                : () => context.read<TransactionBloc>().add(
-                                    const TransactionLoadMoreRequested(),
-                                  ),
-                            child: state.isLoadingMore
-                                ? const SizedBox(
-                                    width: 22,
-                                    height: 22,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : const Text('Load more'),
-                          ),
-                        ),
-                      )
-                    else
-                      SliverToBoxAdapter(child: SizedBox(height: 32.h)),
+                    // if (state.pagination.hasNextPage)
+                    //   SliverToBoxAdapter(
+                    //     child: Padding(
+                    //       padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 32.h),
+                    //       child: OutlinedButton(
+                    //         onPressed: state.isLoadingMore
+                    //             ? null
+                    //             : () => context.read<TransactionBloc>().add(
+                    //                 const TransactionLoadMoreRequested(),
+                    //               ),
+                    //         child: state.isLoadingMore
+                    //             ? const SizedBox(
+                    //                 width: 22,
+                    //                 height: 22,
+                    //                 child: CircularProgressIndicator(
+                    //                   strokeWidth: 2,
+                    //                 ),
+                    //               )
+                    //             : const Text('See More'),
+                    //       ),
+                    //     ),
+                    //   )
+                    // else
+                    SliverToBoxAdapter(child: SizedBox(height: 32.h)),
                   ],
                 ),
               ),

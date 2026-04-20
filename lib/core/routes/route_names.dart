@@ -12,6 +12,7 @@ abstract final class RouteEndpoints {
   static const String account = '/account';
   static const String transaction = '/transaction';
   static const String transactionDetail = '/transaction-detail';
+  static const String transactionHistory = '/transaction-history';
   static const String setting = '/setting';
   static const String notifications = '/notifications';
 

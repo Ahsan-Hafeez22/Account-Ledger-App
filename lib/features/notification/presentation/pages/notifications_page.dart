@@ -127,6 +127,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
 
         return Scaffold(
           appBar: AppBar(
+            scrolledUnderElevation: 0,
             leading: _selectionMode
                 ? IconButton(
                     icon: const Icon(Icons.close_rounded),

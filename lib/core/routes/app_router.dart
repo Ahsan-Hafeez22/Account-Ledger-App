@@ -8,6 +8,7 @@ import 'package:account_ledger/features/authentication/presentation/pages/reset_
 import 'package:account_ledger/features/authentication/presentation/pages/security_page.dart';
 import 'package:account_ledger/features/notification/presentation/pages/notifications_page.dart';
 import 'package:account_ledger/features/splash/presentation/pages/splash_page.dart';
+import 'package:account_ledger/features/transaction/presentation/pages/transaction_history_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:account_ledger/features/transaction/presentation/pages/transaction_detail_page.dart';
@@ -70,11 +71,16 @@ class AppRouter {
           );
         },
       ),
+      GoRoute(
+        path: RouteEndpoints.transactionHistory,
+        pageBuilder: (context, state) {
+          return fadeTransitionPage(
+            title: 'Transaction details',
+            child: TransactionHistoryPage(),
+          );
+        },
+      ),
 
-      // GoRoute(
-      //   path: RouteEndpoints.forgotPassword,
-      //   builder: (_, __) => const BottomNavScaffold(initialIndex: 3),
-      // ),
       GoRoute(
         path: RouteEndpoints.forgotPassword,
         pageBuilder: (context, state) => fadeTransitionPage(
