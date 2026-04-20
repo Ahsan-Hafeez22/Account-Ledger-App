@@ -7,7 +7,9 @@ import 'package:internet_connection_checker_plus/internet_connection_checker_plu
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:account_ledger/core/dependency_injection/account_injection.dart';
 import 'package:account_ledger/core/dependency_injection/auth_injection.dart';
+import 'package:account_ledger/core/dependency_injection/beneficiary_injection.dart';
 import 'package:account_ledger/core/dependency_injection/notification_injection.dart';
+import 'package:account_ledger/core/dependency_injection/profile_injection.dart';
 import 'package:account_ledger/core/dependency_injection/transaction_injection.dart';
 import 'package:account_ledger/core/network/api_client.dart';
 import 'package:account_ledger/core/network/internet_checker.dart';
@@ -59,6 +61,8 @@ Future<void> initServiceLocator() async {
   initAccountInjection(sl);
   initTransactionInjection(sl);
   initNotificationInjection(sl);
+  initProfileInjection(sl);
+  initBeneficiaryInjection(sl);
   // initDashboardInjection(sl);
   // initAnalyticsInjection(sl);
   // initProfileInjection(sl);

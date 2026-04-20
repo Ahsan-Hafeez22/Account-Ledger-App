@@ -9,7 +9,9 @@ import 'package:account_ledger/core/system/app_system_ui.dart';
 import 'package:account_ledger/core/theme/theme_cubit.dart';
 import 'package:account_ledger/features/account/presentation/bloc/account_bloc.dart';
 import 'package:account_ledger/features/authentication/presentation/bloc/auth_bloc.dart';
+import 'package:account_ledger/features/beneficiary/presentation/bloc/beneficiary_bloc.dart';
 import 'package:account_ledger/features/notification/presentation/bloc/notification_bloc.dart';
+import 'package:account_ledger/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:account_ledger/features/transaction/presentation/bloc/transaction_bloc.dart';
 import 'package:account_ledger/core/routes/app_router.dart';
 
@@ -84,6 +86,8 @@ class _AccountLedgerState extends State<AccountLedger> with WidgetsBindingObserv
             BlocProvider(create: (_) => sl<AccountBloc>()),
             BlocProvider(create: (_) => sl<TransactionBloc>()),
             BlocProvider.value(value: sl<NotificationBloc>()),
+            BlocProvider(create: (_) => sl<ProfileBloc>()),
+            BlocProvider.value(value: sl<BeneficiaryBloc>()),
           ],
           child: BlocListener<ThemeCubit, ThemeMode>(
             listenWhen: (prev, next) => prev != next,

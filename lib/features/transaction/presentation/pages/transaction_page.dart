@@ -3,6 +3,9 @@ import 'package:account_ledger/core/constants/app_fonts.dart';
 import 'package:account_ledger/core/utils/custom_snack_bar.dart';
 import 'package:account_ledger/core/utils/validators.dart';
 import 'package:account_ledger/features/account/presentation/bloc/account_bloc.dart';
+import 'package:account_ledger/features/beneficiary/presentation/bloc/beneficiary_bloc.dart';
+import 'package:account_ledger/features/beneficiary/presentation/widgets/beneficiary_picker_sheet.dart';
+import 'package:account_ledger/features/beneficiary/domain/entities/beneficiary_entity.dart';
 import 'package:account_ledger/features/transaction/domain/entities/transaction_entity.dart';
 import 'package:account_ledger/features/transaction/domain/entities/transaction_party_entity.dart';
 import 'package:account_ledger/core/routes/route_names.dart';
@@ -67,6 +70,32 @@ class _TransactionViewState extends State<_TransactionView> {
         description: _descriptionController.text,
       ),
     );
+  }
+
+  Future<void> _pickBeneficiary() async {
+    // Ensure list is loaded at least once.
+    final bloc = context.read<BeneficiaryBloc>();
+    if (bloc.state.items.isEmpty && !bloc.state.loading) {
+      bloc.add(const BeneficiariesRefreshRequested());
+    }
+    final selected = await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) {
+        return BlocBuilder<BeneficiaryBloc, BeneficiaryState>(
+          builder: (context, state) {
+            return BeneficiaryPickerSheet(items: state.items);
+          },
+        );
+      },
+    );
+    if (!mounted || selected == null) return;
+    // Fill recipient account field
+    final b = selected as BeneficiaryEntity;
+    final accountNumber = b.accountNumber;
+    if (accountNumber.isEmpty) return;
+    setState(() => _toAccountController.text = accountNumber);
   }
 
   Future<String?> _showPinDialog(BuildContext context) async {
@@ -277,6 +306,15 @@ class _TransactionViewState extends State<_TransactionView> {
                                 validator: (v) => Validators.required(
                                   v,
                                   'Recipient account number',
+                                ),
+                              ),
+                              SizedBox(height: 10.h),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: TextButton.icon(
+                                  onPressed: _pickBeneficiary,
+                                  icon: const Icon(Icons.people_alt_rounded),
+                                  label: const Text('Choose beneficiary'),
                                 ),
                               ),
                               SizedBox(height: 12.h),

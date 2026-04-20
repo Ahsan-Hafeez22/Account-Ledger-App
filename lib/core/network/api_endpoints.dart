@@ -17,6 +17,7 @@ abstract final class ApiEndpoints {
   static const String resetPassword = '/auth/reset-password';
   static const String changePassword = '/auth/change-password';
   static const String registerDevice = '/auth/register-device';
+  static const String editProfile = '/auth/profile';
 
   // Notification
   static const String getNotification = '/notifications/get-notification';
@@ -37,6 +38,10 @@ abstract final class ApiEndpoints {
   static String changeAccountStatus(String status) =>
       '/account/change-account-status/${Uri.encodeComponent(status)}';
   static const String changePin = '/account/change-pin';
+  static const String addBeneficiary = '/account/add-benificiary';
+  static const String getBeneficiaries = '/account/get-benificiary';
+  static String deleteBeneficiary(String id) =>
+      '/account/benificiary/${Uri.encodeComponent(id)}';
 
   // Transaction (mount should match server, e.g. app.use('/api/transaction', router))
   static const String createTransaction = '/transaction/create-transaction';

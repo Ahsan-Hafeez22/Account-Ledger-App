@@ -7,6 +7,7 @@ import 'package:account_ledger/features/authentication/presentation/pages/regist
 import 'package:account_ledger/features/authentication/presentation/pages/reset_password_page.dart';
 import 'package:account_ledger/features/authentication/presentation/pages/security_page.dart';
 import 'package:account_ledger/features/notification/presentation/pages/notifications_page.dart';
+import 'package:account_ledger/features/profile/presentation/pages/edit_profile_page.dart';
 import 'package:account_ledger/features/splash/presentation/pages/splash_page.dart';
 import 'package:account_ledger/features/transaction/presentation/pages/transaction_history_page.dart';
 import 'package:flutter/material.dart';
@@ -59,6 +60,13 @@ class AppRouter {
         pageBuilder: (context, state) => fadeTransitionPage(
           title: 'Notifications',
           child: const NotificationsPage(),
+        ),
+      ),
+      GoRoute(
+        path: RouteEndpoints.editProfile,
+        pageBuilder: (context, state) => fadeTransitionPage(
+          title: 'Edit profile',
+          child: const EditProfilePage(),
         ),
       ),
       GoRoute(
