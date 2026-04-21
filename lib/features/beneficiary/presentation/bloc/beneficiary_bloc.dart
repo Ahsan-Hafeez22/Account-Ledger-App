@@ -2,6 +2,7 @@ import 'package:account_ledger/features/beneficiary/domain/entities/beneficiary_
 import 'package:account_ledger/features/beneficiary/domain/usecases/add_beneficiary_usecase.dart';
 import 'package:account_ledger/features/beneficiary/domain/usecases/delete_beneficiary_usecase.dart';
 import 'package:account_ledger/features/beneficiary/domain/usecases/get_beneficiaries_usecase.dart';
+import 'package:account_ledger/core/error/exceptions.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -23,6 +24,9 @@ class BeneficiaryBloc extends Bloc<BeneficiaryEvent, BeneficiaryState> {
        super(const BeneficiaryState.initial()) {
     on<BeneficiariesLoadRequested>(_onLoad);
     on<BeneficiariesRefreshRequested>(_onRefresh);
+    on<BeneficiariesCleared>((event, emit) {
+      emit(const BeneficiaryState.initial());
+    });
     on<BeneficiaryAddRequested>(_onAdd);
     on<BeneficiaryDeleteRequested>(_onDelete);
     on<BeneficiaryMessageConsumed>((event, emit) {
@@ -34,12 +38,31 @@ class BeneficiaryBloc extends Bloc<BeneficiaryEvent, BeneficiaryState> {
     BeneficiariesLoadRequested event,
     Emitter<BeneficiaryState> emit,
   ) async {
-    emit(state.copyWith(loading: true, errorMessage: null));
+    // Clear old cached items while loading (important on account switch).
+    emit(
+      state.copyWith(
+        loading: true,
+        submitting: false,
+        items: const [],
+        busyIds: const {},
+        message: null,
+        errorMessage: null,
+      ),
+    );
     try {
       final items = await _get();
       emit(state.copyWith(loading: false, items: items));
+    } on ServerException catch (e) {
+      emit(state.copyWith(loading: false, errorMessage: e.message));
+    } on NetworkException catch (e) {
+      emit(state.copyWith(loading: false, errorMessage: e.message));
     } catch (_) {
-      emit(state.copyWith(loading: false, errorMessage: 'Failed to load beneficiaries'));
+      emit(
+        state.copyWith(
+          loading: false,
+          errorMessage: 'Failed to load beneficiaries',
+        ),
+      );
     }
   }
 
@@ -50,6 +73,10 @@ class BeneficiaryBloc extends Bloc<BeneficiaryEvent, BeneficiaryState> {
     try {
       final items = await _get();
       emit(state.copyWith(items: items));
+    } on ServerException catch (e) {
+      emit(state.copyWith(errorMessage: e.message));
+    } on NetworkException catch (e) {
+      emit(state.copyWith(errorMessage: e.message));
     } catch (_) {
       emit(state.copyWith(errorMessage: 'Refresh failed'));
     }
@@ -64,9 +91,24 @@ class BeneficiaryBloc extends Bloc<BeneficiaryEvent, BeneficiaryState> {
     try {
       await _add(accountNumber: event.accountNumber, nickname: event.nickname);
       final items = await _get();
-      emit(state.copyWith(submitting: false, items: items, message: 'Beneficiary added'));
+      emit(
+        state.copyWith(
+          submitting: false,
+          items: items,
+          message: 'Beneficiary added',
+        ),
+      );
+    } on ServerException catch (e) {
+      emit(state.copyWith(submitting: false, errorMessage: e.message));
+    } on NetworkException catch (e) {
+      emit(state.copyWith(submitting: false, errorMessage: e.message));
     } catch (_) {
-      emit(state.copyWith(submitting: false, errorMessage: 'Failed to add beneficiary'));
+      emit(
+        state.copyWith(
+          submitting: false,
+          errorMessage: 'Failed to add beneficiary',
+        ),
+      );
     }
   }
 
@@ -85,12 +127,20 @@ class BeneficiaryBloc extends Bloc<BeneficiaryEvent, BeneficiaryState> {
     try {
       await _delete(event.id);
       emit(state.copyWith(message: 'Beneficiary deleted'));
+    } on ServerException catch (e) {
+      emit(state.copyWith(items: before, errorMessage: e.message));
+    } on NetworkException catch (e) {
+      emit(state.copyWith(items: before, errorMessage: e.message));
     } catch (_) {
-      emit(state.copyWith(items: before, errorMessage: 'Failed to delete beneficiary'));
+      emit(
+        state.copyWith(
+          items: before,
+          errorMessage: 'Failed to delete beneficiary',
+        ),
+      );
     } finally {
       final nextBusy = {...state.busyIds}..remove(event.id);
       emit(state.copyWith(busyIds: nextBusy));
     }
   }
 }
-

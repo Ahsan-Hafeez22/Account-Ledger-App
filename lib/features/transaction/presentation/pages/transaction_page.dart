@@ -40,13 +40,12 @@ class _TransactionViewState extends State<_TransactionView> {
   final _toAccountController = TextEditingController();
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final int _selectedLimit = 3;
 
   @override
   void initState() {
     super.initState();
     context.read<TransactionBloc>().add(
-      TransactionLoadRequested(page: 1, limit: _selectedLimit),
+      TransactionLoadRequested(page: 1, limit: 3),
     );
   }
 
@@ -251,10 +250,7 @@ class _TransactionViewState extends State<_TransactionView> {
                       SizedBox(height: 16.h),
                       FilledButton(
                         onPressed: () => context.read<TransactionBloc>().add(
-                          TransactionLoadRequested(
-                            page: 1,
-                            limit: _selectedLimit,
-                          ),
+                          TransactionLoadRequested(page: 1, limit: 3),
                         ),
                         child: const Text('Retry'),
                       ),
@@ -265,7 +261,7 @@ class _TransactionViewState extends State<_TransactionView> {
               TransactionLoaded() => RefreshIndicator(
                 onRefresh: () async {
                   context.read<TransactionBloc>().add(
-                    TransactionLoadRequested(page: 1, limit: _selectedLimit),
+                    TransactionLoadRequested(page: 1, limit: 3),
                   );
                   await context.read<TransactionBloc>().stream.firstWhere(
                     (s) => s is TransactionLoaded || s is TransactionFailure,
@@ -296,7 +292,23 @@ class _TransactionViewState extends State<_TransactionView> {
                                   color: secondary,
                                 ),
                               ),
-                              SizedBox(height: 20.h),
+                              SizedBox(height: 10.h),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: Wrap(
+                                  spacing: 8,
+                                  children: [
+                                    TextButton.icon(
+                                      onPressed: _pickBeneficiary,
+                                      icon: const Icon(
+                                        Icons.people_alt_rounded,
+                                      ),
+                                      label: const Text('Choose beneficiary'),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(height: 10.h),
 
                               CustomTextField(
                                 controller: _toAccountController,
@@ -309,14 +321,7 @@ class _TransactionViewState extends State<_TransactionView> {
                                 ),
                               ),
                               SizedBox(height: 10.h),
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: TextButton.icon(
-                                  onPressed: _pickBeneficiary,
-                                  icon: const Icon(Icons.people_alt_rounded),
-                                  label: const Text('Choose beneficiary'),
-                                ),
-                              ),
+
                               SizedBox(height: 12.h),
 
                               CustomTextField(

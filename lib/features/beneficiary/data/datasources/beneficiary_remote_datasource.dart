@@ -20,8 +20,15 @@ class BeneficiaryRemoteDatasourceImpl implements BeneficiaryRemoteDatasource {
   Never _throwTypedDio(DioException e, String scope) {
     final statusCode = e.response?.statusCode;
     final data = e.response?.data;
+    String message = 'Request failed. Please try again.';
+    if (data is Map<String, dynamic>) {
+      final m = data['message'];
+      if (m is String && m.isNotEmpty) {
+        message = m;
+      }
+    }
     throw ServerException(
-      message: 'Request failed. Please try again.',
+      message: message,
       code: '$scope-failed-${statusCode ?? 'unknown'}',
       details: data ?? e.toString(),
     );

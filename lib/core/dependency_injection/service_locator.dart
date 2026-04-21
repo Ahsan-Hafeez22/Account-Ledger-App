@@ -17,6 +17,7 @@ import 'package:account_ledger/core/storage/secure_storage_datasource.dart';
 import 'package:account_ledger/features/authentication/data/datasources/token_storage_datasource.dart';
 import 'package:account_ledger/features/authentication/presentation/bloc/auth_bloc.dart';
 import 'package:dio/dio.dart';
+import 'package:account_ledger/features/dashboard/presentation/bloc/balance_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -63,6 +64,7 @@ Future<void> initServiceLocator() async {
   initNotificationInjection(sl);
   initProfileInjection(sl);
   initBeneficiaryInjection(sl);
+  sl.registerFactory(() => BalanceBloc(getAccountBalanceUseCase: sl()));
   // initDashboardInjection(sl);
   // initAnalyticsInjection(sl);
   // initProfileInjection(sl);

@@ -15,6 +15,11 @@ final class BeneficiariesRefreshRequested extends BeneficiaryEvent {
   const BeneficiariesRefreshRequested();
 }
 
+/// Clears the cached list (used on logout / account switch).
+final class BeneficiariesCleared extends BeneficiaryEvent {
+  const BeneficiariesCleared();
+}
+
 final class BeneficiaryAddRequested extends BeneficiaryEvent {
   final String accountNumber;
   final String nickname;

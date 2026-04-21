@@ -15,6 +15,8 @@ abstract class AccountRemoteDatasource {
   Future<void> changePin({required String oldPin, required String newPin});
 
   Future<void> changeAccountStatus({required String status});
+
+  Future<double> getAccountBalance({required String accountNumber});
 }
 
 class AccountRemoteDatasourceImpl implements AccountRemoteDatasource {
@@ -166,6 +168,29 @@ class AccountRemoteDatasourceImpl implements AccountRemoteDatasource {
       rethrow;
     } on DioException catch (e) {
       _throwTypedDio(e, 'change-pin');
+    }
+  }
+
+  @override
+  Future<double> getAccountBalance({required String accountNumber}) async {
+    try {
+      final response = await dio.get(
+        ApiEndpoints.accountBalance(accountNumber),
+      );
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        final b = data['balance'];
+        if (b is num) return b.toDouble();
+        if (b is String) return double.tryParse(b) ?? 0;
+      }
+      throw const ServerException(
+        message: 'Invalid balance response',
+        code: 'invalid-balance-response',
+      );
+    } on AppException {
+      rethrow;
+    } on DioException catch (e) {
+      _throwTypedDio(e, 'get-balance');
     }
   }
 }

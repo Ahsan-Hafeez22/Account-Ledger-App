@@ -15,4 +15,8 @@ abstract class AccountRepository {
     required String newPin,
   });
   Future<Either<Failure, void>> changeAccountStatus({required String status});
+
+  Future<Either<Failure, double>> getAccountBalance({
+    required String accountNumber,
+  });
 }

@@ -69,4 +69,18 @@ class AccountRepositoryImpl implements AccountRepository {
       return Left(NetworkFailure(message: e.message, code: e.code));
     }
   }
+
+  @override
+  Future<Either<Failure, double>> getAccountBalance({
+    required String accountNumber,
+  }) async {
+    try {
+      final balance = await _remote.getAccountBalance(accountNumber: accountNumber);
+      return Right(balance);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message, code: e.code));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(message: e.message, code: e.code));
+    }
+  }
 }

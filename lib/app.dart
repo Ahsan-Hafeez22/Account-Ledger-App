@@ -10,6 +10,7 @@ import 'package:account_ledger/core/theme/theme_cubit.dart';
 import 'package:account_ledger/features/account/presentation/bloc/account_bloc.dart';
 import 'package:account_ledger/features/authentication/presentation/bloc/auth_bloc.dart';
 import 'package:account_ledger/features/beneficiary/presentation/bloc/beneficiary_bloc.dart';
+import 'package:account_ledger/features/dashboard/presentation/bloc/balance_bloc.dart';
 import 'package:account_ledger/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:account_ledger/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:account_ledger/features/transaction/presentation/bloc/transaction_bloc.dart';
@@ -88,28 +89,44 @@ class _AccountLedgerState extends State<AccountLedger> with WidgetsBindingObserv
             BlocProvider.value(value: sl<NotificationBloc>()),
             BlocProvider(create: (_) => sl<ProfileBloc>()),
             BlocProvider.value(value: sl<BeneficiaryBloc>()),
+            BlocProvider(create: (_) => sl<BalanceBloc>()),
           ],
-          child: BlocListener<ThemeCubit, ThemeMode>(
-            listenWhen: (prev, next) => prev != next,
-            listener: (_, mode) => AppSystemUi.applyThemeMode(mode),
-            child: BlocBuilder<ThemeCubit, ThemeMode>(
-              buildWhen: (prev, next) => prev != next,
-              builder: (context, themeMode) {
-                final overlay = AppSystemUi.overlayStyleForUiBrightness(
-                  AppSystemUi.effectiveBrightness(themeMode),
-                );
-                return AnnotatedRegion<SystemUiOverlayStyle>(
-                  value: overlay,
-                  child: MaterialApp.router(
-                    title: 'Account Ledger',
-                    theme: AppTheme.lightTheme,
-                    darkTheme: AppTheme.darkTheme,
-                    themeMode: themeMode,
-                    debugShowCheckedModeBanner: false,
-                    routerConfig: _appRouter.router,
-                  ),
-                );
-              },
+          child: BlocListener<AuthBloc, AuthState>(
+            listenWhen: (p, c) {
+              final pId = p is AuthAuthenticated ? p.user.id : null;
+              final cId = c is AuthAuthenticated ? c.user.id : null;
+              return p.runtimeType != c.runtimeType || pId != cId;
+            },
+            listener: (context, state) {
+              // Important: BeneficiaryBloc is a lazySingleton; clear/reload on account switch.
+              final b = context.read<BeneficiaryBloc>();
+              b.add(const BeneficiariesCleared());
+              if (state is AuthAuthenticated) {
+                b.add(const BeneficiariesLoadRequested());
+              }
+            },
+            child: BlocListener<ThemeCubit, ThemeMode>(
+              listenWhen: (prev, next) => prev != next,
+              listener: (_, mode) => AppSystemUi.applyThemeMode(mode),
+              child: BlocBuilder<ThemeCubit, ThemeMode>(
+                buildWhen: (prev, next) => prev != next,
+                builder: (context, themeMode) {
+                  final overlay = AppSystemUi.overlayStyleForUiBrightness(
+                    AppSystemUi.effectiveBrightness(themeMode),
+                  );
+                  return AnnotatedRegion<SystemUiOverlayStyle>(
+                    value: overlay,
+                    child: MaterialApp.router(
+                      title: 'Account Ledger',
+                      theme: AppTheme.lightTheme,
+                      darkTheme: AppTheme.darkTheme,
+                      themeMode: themeMode,
+                      debugShowCheckedModeBanner: false,
+                      routerConfig: _appRouter.router,
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         );

@@ -24,7 +24,7 @@ void initBeneficiaryInjection(GetIt sl) {
       getBeneficiaries: sl(),
       addBeneficiary: sl(),
       deleteBeneficiary: sl(),
-    )..add(const BeneficiariesLoadRequested()),
+    ),
   );
 }
 

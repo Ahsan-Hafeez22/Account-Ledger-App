@@ -42,6 +42,8 @@ abstract final class ApiEndpoints {
   static const String getBeneficiaries = '/account/get-benificiary';
   static String deleteBeneficiary(String id) =>
       '/account/benificiary/${Uri.encodeComponent(id)}';
+  static String accountBalance(String accountNumber) =>
+      '/account/balance/${Uri.encodeComponent(accountNumber)}';
 
   // Transaction (mount should match server, e.g. app.use('/api/transaction', router))
   static const String createTransaction = '/transaction/create-transaction';
