@@ -308,8 +308,8 @@ class _TransactionViewState extends State<_TransactionView> {
                                   ],
                                 ),
                               ),
-                              SizedBox(height: 10.h),
 
+                              // SizedBox(height: 5.h),
                               CustomTextField(
                                 controller: _toAccountController,
                                 label: 'Recipient account number',
@@ -321,8 +321,6 @@ class _TransactionViewState extends State<_TransactionView> {
                                 ),
                               ),
                               SizedBox(height: 10.h),
-
-                              SizedBox(height: 12.h),
 
                               CustomTextField(
                                 controller: _amountController,
