@@ -10,6 +10,7 @@ import 'package:account_ledger/core/theme/theme_cubit.dart';
 import 'package:account_ledger/features/account/presentation/bloc/account_bloc.dart';
 import 'package:account_ledger/features/authentication/presentation/bloc/auth_bloc.dart';
 import 'package:account_ledger/features/beneficiary/presentation/bloc/beneficiary_bloc.dart';
+import 'package:account_ledger/features/chat/presentation/bloc/chat_bloc.dart';
 import 'package:account_ledger/features/dashboard/presentation/bloc/balance_bloc.dart';
 import 'package:account_ledger/features/notification/presentation/bloc/notification_bloc.dart';
 import 'package:account_ledger/features/profile/presentation/bloc/profile_bloc.dart';
@@ -90,6 +91,7 @@ class _AccountLedgerState extends State<AccountLedger> with WidgetsBindingObserv
             BlocProvider(create: (_) => sl<ProfileBloc>()),
             BlocProvider.value(value: sl<BeneficiaryBloc>()),
             BlocProvider(create: (_) => sl<BalanceBloc>()),
+            BlocProvider.value(value: sl<ChatBloc>()),
           ],
           child: BlocListener<AuthBloc, AuthState>(
             listenWhen: (p, c) {
@@ -103,6 +105,11 @@ class _AccountLedgerState extends State<AccountLedger> with WidgetsBindingObserv
               b.add(const BeneficiariesCleared());
               if (state is AuthAuthenticated) {
                 b.add(const BeneficiariesLoadRequested());
+                // Ensure socket is connected once user is authenticated.
+                context.read<ChatBloc>().add(const ConnectSocket());
+              } else {
+                // On logout/unauthorized, cleanly disconnect.
+                context.read<ChatBloc>().add(const DisconnectSocket());
               }
             },
             child: BlocListener<ThemeCubit, ThemeMode>(

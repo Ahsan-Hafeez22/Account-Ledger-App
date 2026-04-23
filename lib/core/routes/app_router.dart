@@ -6,6 +6,8 @@ import 'package:account_ledger/features/authentication/presentation/pages/otp_ve
 import 'package:account_ledger/features/authentication/presentation/pages/register_page.dart';
 import 'package:account_ledger/features/authentication/presentation/pages/reset_password_page.dart';
 import 'package:account_ledger/features/authentication/presentation/pages/security_page.dart';
+import 'package:account_ledger/features/chat/presentation/pages/chat_screen.dart';
+import 'package:account_ledger/features/chat/presentation/pages/chat_users_page.dart';
 import 'package:account_ledger/features/notification/presentation/pages/notifications_page.dart';
 import 'package:account_ledger/features/profile/presentation/pages/edit_profile_page.dart';
 import 'package:account_ledger/features/splash/presentation/pages/splash_page.dart';
@@ -67,6 +69,23 @@ class AppRouter {
         pageBuilder: (context, state) => fadeTransitionPage(
           title: 'Edit profile',
           child: const EditProfilePage(),
+        ),
+      ),
+      GoRoute(
+        path: '${RouteEndpoints.chat}/:partnerId',
+        pageBuilder: (context, state) {
+          final partnerId = state.pathParameters['partnerId'] ?? '';
+          return fadeTransitionPage(
+            title: 'Chat',
+            child: ChatScreen(partnerId: partnerId),
+          );
+        },
+      ),
+      GoRoute(
+        path: RouteEndpoints.chats,
+        pageBuilder: (context, state) => fadeTransitionPage(
+          title: 'Chats',
+          child: const ChatUsersPage(),
         ),
       ),
       GoRoute(

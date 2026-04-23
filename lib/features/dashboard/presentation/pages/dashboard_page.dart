@@ -21,6 +21,8 @@ import 'package:account_ledger/features/notification/presentation/bloc/notificat
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:account_ledger/core/routes/route_names.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -187,6 +189,16 @@ class _DashboardPageState extends State<DashboardPage> {
                                 style: context.appFonts.boldBlack18.copyWith(
                                   color: scheme.onSurface,
                                 ),
+                              ),
+                            ),
+                            IconButton(
+                              tooltip: 'Chat',
+                              onPressed: () {
+                                context.push(RouteEndpoints.chats);
+                              },
+                              icon: Icon(
+                                Icons.chat_bubble_outline,
+                                color: scheme.onSurface,
                               ),
                             ),
                             const NotificationBellButton(),

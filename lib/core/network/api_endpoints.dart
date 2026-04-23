@@ -45,6 +45,10 @@ abstract final class ApiEndpoints {
   static String accountBalance(String accountNumber) =>
       '/account/balance/${Uri.encodeComponent(accountNumber)}';
 
+  // Chat
+  // Backend should support: GET ?senderId=&receiverId=&page=&limit=
+  static const String chatMessages = '/chat/messages';
+
   // Transaction (mount should match server, e.g. app.use('/api/transaction', router))
   static const String createTransaction = '/transaction/create-transaction';
   static String getTransactionDetail(String transactionId) =>

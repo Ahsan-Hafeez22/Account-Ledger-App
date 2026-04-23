@@ -2,6 +2,8 @@ import 'package:equatable/equatable.dart';
 
 class BeneficiaryEntity extends Equatable {
   final String id;
+  /// The actual user id used by chat socket (matches backend `socket.user._id`).
+  final String userId;
   final String nickname;
   final String accountTitle;
   final String accountNumber;
@@ -11,6 +13,7 @@ class BeneficiaryEntity extends Equatable {
 
   const BeneficiaryEntity({
     required this.id,
+    required this.userId,
     required this.nickname,
     required this.accountTitle,
     required this.accountNumber,
@@ -22,6 +25,7 @@ class BeneficiaryEntity extends Equatable {
   @override
   List<Object?> get props => [
         id,
+        userId,
         nickname,
         accountTitle,
         accountNumber,

@@ -16,7 +16,12 @@ abstract final class RouteEndpoints {
   static const String setting = '/setting';
   static const String notifications = '/notifications';
   static const String editProfile = '/edit-profile';
+  static const String chat = '/chat';
+  static const String chats = '/chats';
 
   static String transactionDetailPath(String transactionId) =>
       '$transactionDetail/${Uri.encodeComponent(transactionId)}';
+
+  static String chatPath(String partnerId) =>
+      '$chat/${Uri.encodeComponent(partnerId)}';
 }
